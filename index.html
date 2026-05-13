@@ -1,0 +1,2748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#6d4c41">
+    <meta name="description" content="CareConnect - Personal Speech Companion">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <title>CareConnect</title>
+    <style>
+
+        :root {
+            --bg-color: #f4e4c1;
+            --bg-paper: #faf3e0;
+            --accent-color: #6d4c41;
+            --text-color: #4e342e;
+            --text-light: #8d6e63;
+            --gold-accent: #c9a84c;
+            --border-color: #d7ccc8;
+            --shadow-color: rgba(0,0,0,0.1);
+            --font-heading: 'Caveat', cursive;
+            --font-body: 'Patrick Hand', cursive;
+            --font-size-large: 1.8rem;
+            --font-size-medium: 1.2rem;
+            --font-size-small: 0.95rem;
+            --page-max-width: 100%;
+            --transition-speed: 0.4s;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        html {
+            height: 100%;
+            height: -webkit-fill-available;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: stretch;
+            justify-content: stretch;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        .book-container {
+            width: 100%;
+            max-width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            perspective: 1500px;
+            background: var(--bg-color);
+            box-shadow: inset 0 0 60px rgba(101,67,33,0.15);
+            margin: 0;
+            padding: 0;
+        }
+
+        .book-container::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(to right, #5d4037 0%, #8d6e63 50%, transparent 100%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .book-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .book-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            background: var(--bg-color);
+            border-bottom: 2px solid var(--gold-accent);
+            position: relative;
+            z-index: 10;
+            gap: 10px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .book-header::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--gold-accent) 0px,
+                var(--gold-accent) 4px,
+                transparent 4px,
+                transparent 8px
+            );
+        }
+
+        .book-header h1 {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin: 0;
+            flex: 1;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .book-header .subtitle {
+            display: none;
+            font-size: var(--font-size-small);
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .dashboard-toggle-btn {
+            background: none;
+            border: 1px solid var(--gold-accent);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--accent-color);
+            transition: background var(--transition-speed);
+        }
+
+        .dashboard-toggle-btn:active {
+            background: var(--border-color);
+        }
+
+        .back-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid var(--gold-accent);
+            background: var(--bg-paper);
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+            transition: transform 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+        .back-btn.visible {
+            display: flex;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+            background: var(--border-color);
+        }
+
+        .swipe-hint {
+            position: absolute;
+            bottom: 60px;
+            right: 16px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .swipe-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 30;
+            overflow: hidden;
+        }
+
+        .page-wrapper {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+        }
+
+        .page-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 16px 30px 20px;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            background: var(--bg-color);
+        }
+
+        .flip-out {
+            animation: flipPageOut 0.4s ease-in forwards;
+        }
+
+        .flip-in {
+            animation: flipPageIn 0.4s ease-out forwards;
+        }
+
+        .flip-in-active {
+            animation: flipPageInActive 0.35s ease-out forwards;
+        }
+
+        .flip-back-out {
+            animation: flipPageBackOut 0.4s ease-in forwards;
+        }
+
+        .flip-back-in {
+            animation: flipPageBackIn 0.4s ease-out forwards;
+        }
+
+        @keyframes flipPageOut {
+            from { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
+            to   { transform: perspective(1200px) rotateY(-90deg); opacity: 0; }
+        }
+
+        @keyframes flipPageIn {
+            from { transform: perspective(1200px) rotateY(90deg); opacity: 0; }
+            to   { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
+        }
+
+        @keyframes flipPageInActive {
+            from { transform: perspective(1200px) rotateY(20deg); opacity: 0.5; }
+            to   { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
+        }
+
+        @keyframes flipPageBackOut {
+            from { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
+            to   { transform: perspective(1200px) rotateY(90deg); opacity: 0; }
+        }
+
+        @keyframes flipPageBackIn {
+            from { transform: perspective(1200px) rotateY(-90deg); opacity: 0; }
+            to   { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
+        }
+
+        .flipping::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, rgba(101,67,33,0.05), transparent);
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .dragging {
+            cursor: grabbing !important;
+            user-select: none;
+        }
+
+        .page-number {
+            text-align: center;
+            padding: 6px;
+            font-size: var(--font-size-small);
+            color: var(--text-light);
+            background: var(--bg-color);
+            border-top: 1px solid var(--border-color);
+            position: relative;
+            z-index: 10;
+        }
+
+        .greeting-section {
+            text-align: center;
+            padding: 16px 8px 20px;
+            border-bottom: 1px dashed var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .greeting-name {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin: 0 0 4px;
+        }
+
+        .greeting-message {
+            font-size: var(--font-size-small);
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .needs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 0 20px;
+        }
+
+        .need-btn {
+            background: var(--bg-paper);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .need-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px var(--shadow-color);
+        }
+
+        .need-btn .icon {
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+
+        .need-btn .label {
+            font-size: var(--font-size-medium);
+            color: var(--text-color);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .need-btn .arrow {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            position: absolute;
+            bottom: 6px;
+            right: 10px;
+        }
+
+        .chapter-title {
+            font-family: var(--font-heading);
+            font-size: 1.7rem;
+            color: var(--accent-color);
+            text-align: center;
+            margin: 0 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .specific-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            background: var(--bg-paper);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 2px 6px var(--shadow-color);
+            text-align: left;
+        }
+
+        .specific-btn:active {
+            transform: scale(0.97);
+        }
+
+        .specific-btn .icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .alert-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .alert-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            border: none;
+            font-family: var(--font-body);
+            font-size: var(--font-size-medium);
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+
+        .alert-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        .alert-btn.caregiver {
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        .alert-btn.emergency {
+            background: #c62828;
+            color: #fff;
+        }
+
+        .sos-main-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 20px;
+            margin-bottom: 12px;
+            border-radius: 18px;
+            border: none;
+            font-family: var(--font-body);
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: #c62828;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(198,40,40,0.4);
+            animation: sosPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes sosPulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(198,40,40,0.4); transform: scale(1); }
+            50%       { box-shadow: 0 4px 32px rgba(198,40,40,0.7); transform: scale(1.02); }
+        }
+
+        .setup-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-color);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 24px;
+    gap: 16px;
+}
+
+.setup-screen.active {
+    display: flex;
+}
+
+        .setup-screen h2 {
+            font-family: var(--font-heading);
+            font-size: 2.4rem;
+            color: var(--accent-color);
+            margin: 0;
+        }
+
+        .setup-screen p {
+            color: var(--text-light);
+            font-size: var(--font-size-small);
+            margin: 0;
+            text-align: center;
+        }
+
+        .setup-screen input,
+        .setup-screen select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-paper);
+            font-family: var(--font-body);
+            font-size: var(--font-size-medium);
+            color: var(--text-color);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .setup-screen input:focus,
+        .setup-screen select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .setup-screen .setup-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-family: var(--font-body);
+            font-size: var(--font-size-medium);
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 8px;
+        }
+
+        .setup-screen .setup-btn:active {
+            opacity: 0.85;
+        }
+
+        .setup-screen .skip-link {
+            font-size: var(--font-size-small);
+            color: var(--text-light);
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: var(--font-body);
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .confirm-box {
+            background: var(--bg-paper);
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 340px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .confirm-box h3 {
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            color: var(--accent-color);
+            margin: 0 0 8px;
+        }
+
+        .confirm-box p {
+            color: var(--text-light);
+            font-size: var(--font-size-small);
+            margin: 0 0 20px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 13px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: transparent;
+            font-family: var(--font-body);
+            font-size: var(--font-size-medium);
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .btn-confirm {
+            flex: 1;
+            padding: 13px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-color);
+            font-family: var(--font-body);
+            font-size: var(--font-size-medium);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-confirm.danger {
+            background: #c62828;
+        }
+
+        .sent-message {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2e7d32;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: var(--font-size-medium);
+            font-weight: 700;
+            z-index: 600;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            animation: fadeInOut 2.8s ease forwards;
+            white-space: nowrap;
+        }
+
+        .sent-message.hidden {
+            display: none;
+        }
+
+        @keyframes fadeInOut {
+            0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+            75%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .lang-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--text-light);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: border-color 0.2s;
+        }
+
+        .lang-toggle:active {
+            border-color: var(--accent-color);
+        }
+
+        .dashboard-panel {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-color);
+            z-index: 800;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.35s ease;
+        }
+
+        .dashboard-panel.open {
+            transform: translateX(0);
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 2px solid var(--gold-accent);
+            background: var(--bg-color);
+        }
+
+        .dashboard-header h2 {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin: 0;
+        }
+
+        .dashboard-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 16px;
+        }
+
+        .summary-card {
+            background: var(--bg-paper);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .summary-card .s-num {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--accent-color);
+        }
+
+        .summary-card .s-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .log-entries {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .log-entry .log-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .log-entry .log-text {
+            flex: 1;
+            font-size: var(--font-size-small);
+            color: var(--text-color);
+        }
+
+        .log-entry .log-time {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        .dashboard-actions {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-clear-log {
+            flex: 1;
+            padding: 13px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: transparent;
+            font-family: var(--font-body);
+            font-size: var(--font-size-small);
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .btn-close-dashboard {
+            flex: 1;
+            padding: 13px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-color);
+            font-family: var(--font-body);
+            font-size: var(--font-size-small);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .contact-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            background: var(--bg-paper);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 2px 6px var(--shadow-color);
+        }
+
+        .contact-btn:active {
+            transform: scale(0.97);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .contact-item .c-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .contact-item .c-info .c-name {
+            font-size: var(--font-size-medium);
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .contact-item .c-info .c-role {
+            font-size: var(--font-size-small);
+            color: var(--text-light);
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .contact-actions button {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+        }
+
+        .contact-actions button:active {
+            transform: scale(0.92);
+        }
+
+        .contact-actions .btn-wa {
+            background: #25d366;
+            color: #fff;
+        }
+
+        .contact-actions .btn-call {
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        .contact-form {
+            padding: 20px 0 0;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .contact-form h4 {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            color: var(--accent-color);
+            margin: 0 0 12px;
+        }
+
+        .contact-form input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-paper);
+            font-family: var(--font-body);
+            font-size: var(--font-size-small);
+            color: var(--text-color);
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .contact-form input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .contact-form button {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-body);
+            font-size: var(--font-size-small);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .wa-category-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            background: var(--bg-paper);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 2px 6px var(--shadow-color);
+            text-align: left;
+        }
+
+        .wa-category-btn:active {
+            transform: scale(0.97);
+        }
+
+        .wa-message-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            background: var(--bg-paper);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid #25d366;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.15s;
+            text-align: left;
+            font-family: var(--font-body);
+            font-size: var(--font-size-small);
+            color: var(--text-color);
+        }
+
+        .wa-message-btn:active {
+            transform: scale(0.97);
+        }
+
+        .wa-call-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 10px;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-family: var(--font-body);
+            font-size: var(--font-size-medium);
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .wa-call-btn:active {
+            transform: scale(0.97);
+        }
+
+        .selected-contact-banner {
+            background: var(--bg-paper);
+            border: 1px solid var(--gold-accent);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: var(--font-size-small);
+            color: var(--text-color);
+        }
+
+        .sos-overlay {
+            position: fixed;
+            inset: 0;
+            background: #c62828;
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            animation: sosFlash 1s ease-in-out infinite;
+        }
+
+        .sos-overlay.hidden {
+            display: none;
+        }
+
+        @keyframes sosFlash {
+            0%, 100% { background: #c62828; }
+            50%       { background: #8b0000; }
+        }
+
+        .sos-overlay h1 {
+            font-family: var(--font-heading);
+            font-size: 4rem;
+            color: #fff;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            letter-spacing: 0.1em;
+        }
+
+        .sos-overlay p {
+            color: rgba(255,255,255,0.9);
+            font-size: var(--font-size-medium);
+            margin: 0;
+            text-align: center;
+            padding: 0 24px;
+        }
+
+        .sos-stop-btn {
+            padding: 18px 48px;
+            background: #fff;
+            color: #c62828;
+            border: none;
+            border-radius: 50px;
+            font-family: var(--font-body);
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: sosBounce 0.8s ease-in-out infinite;
+        }
+
+        @keyframes sosBounce {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.05); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Setup Screen -->
+    <div class="setup-screen" id="setupScreen">
+        <h2>&#128075; Welcome!</h2>
+        <p>Let's set up CareConnect for you.</p>
+        <input
+            type="text"
+            id="setupName"
+            placeholder="Your name..."
+            autocomplete="off"
+        />
+        <select id="setupLang">
+            <option value="en">English</option>
+            <option value="ml">Malayalam</option>
+        </select>
+        <input
+            type="text"
+            id="setupCaregiver"
+            placeholder="Caregiver's name (optional)..."
+            autocomplete="off"
+        />
+        <button class="setup-btn" id="setupBtn" onclick="completeSetup()">Get Started</button>
+        <button class="skip-link" id="skipSetup" onclick="skipSetup()">Skip for now</button>
+
+    </div>
+
+    <!-- Main App -->
+    <div class="book-container" id="bookContainer">
+
+        <!-- Header -->
+        <div class="book-header">
+            <button class="back-btn" id="backBtn" aria-label="Go back" onclick="goBack()">&#8592;</button>
+            <button class="dashboard-toggle-btn" id="dashboardToggleBtn" aria-label="Dashboard" onclick="openDashboard()">&#128202;</button>
+            <h1>CareConnect</h1>
+            <p class="subtitle">Your personal speech companion</p>
+            <button class="lang-toggle" id="langToggle" onclick="toggleLanguage()">Switch Language</button>
+        </div>
+
+        <!-- Page Wrapper -->
+        <div class="page-wrapper" id="pageWrapper">
+            <div class="swipe-indicator" id="swipeIndicator"></div>
+            <div id="pageContent" class="page-content">
+                <!-- JavaScript fills this dynamically -->
+            </div>
+        </div>
+
+        <!-- Page Number -->
+        <div class="page-number" id="pageNumber">Page 1</div>
+
+    </div><!-- /.book-container -->
+
+    <!-- Confirm Overlay -->
+    <div class="overlay hidden" id="confirmOverlay">
+        <div class="confirm-box">
+            <h3 id="confirmTitle">Confirm</h3>
+            <p id="confirmMessage">Are you sure?</p>
+            <div class="btn-row">
+                <button class="btn-cancel" id="confirmCancel" onclick="closeOverlay()">Cancel</button>
+                <button class="btn-confirm" id="confirmOk" onclick="confirmAction()">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="sent-message hidden" id="sentMessage">&#10003; Message Sent</div>
+
+    <!-- Dashboard Panel -->
+    <div class="dashboard-panel" id="dashboardPanel">
+        <div class="dashboard-header">
+            <h2>&#128202; Caregiver Dashboard</h2>
+            <button class="btn-close-dashboard" id="closeDashboard" onclick="closeDashboard()">&#10005;</button>
+        </div>
+        <div id="dashboardContent">
+            <!-- Dashboard content filled by JavaScript -->
+        </div>
+    </div>
+
+    <!-- SOS Overlay -->
+    <div class="sos-overlay hidden" id="sosOverlay">
+        <h1>&#128680; SOS ACTIVE &#128680;</h1>
+        <p>Emergency alert has been sent to your contacts.</p>
+        <button class="sos-stop-btn" id="sosStopBtn" onclick="stopSOS()">STOP SOS</button>
+    </div>
+<script>
+
+var CONFIG = {
+    speechRate: 0.85,
+    speechPitch: 1.0,
+    animationDuration: 400,
+    swipeThreshold: 0.4,
+    toastDuration: 2500
+};
+
+var userProfile = { name: '', language: 'en', caregiverName: '' };
+
+function loadProfile() {
+    var stored = localStorage.getItem('careconnect_profile');
+    if (stored) {
+        userProfile = JSON.parse(stored);
+        return true;
+    }
+    return false;
+}
+
+function saveProfile() {
+    localStorage.setItem('careconnect_profile', JSON.stringify(userProfile));
+}
+
+function completeSetup() {
+    var nameInput = document.getElementById('setupName');
+    var langInput = document.getElementById('setupLang');
+    var caregiverInput = document.getElementById('setupCaregiver');
+    userProfile.name = nameInput.value.trim() || 'Friend';
+    userProfile.language = langInput.value || 'en';
+    userProfile.caregiverName = caregiverInput.value.trim() || '';
+    currentLang = userProfile.language;
+    saveProfile();
+    document.querySelector('.setup-screen').classList.remove('active');
+    initApp();
+}
+
+function skipSetup() {
+    userProfile.name = 'Friend';
+    userProfile.language = 'en';
+    userProfile.caregiverName = '';
+    currentLang = 'en';
+    saveProfile();
+    document.querySelector('.setup-screen').classList.remove('active');
+    initApp();
+}
+
+var LANGUAGES = {
+    en: { name: 'English', nativeName: 'English', ttsLang: 'en-US' },
+    ml: { name: 'Malayalam', nativeName: 'മലയാളം', ttsLang: 'ml-IN' },
+    hi: { name: 'Hindi', nativeName: 'हिन्दी', ttsLang: 'hi-IN' },
+    ta: { name: 'Tamil', nativeName: 'தமிழ்', ttsLang: 'ta-IN' },
+    te: { name: 'Telugu', nativeName: 'తెలుగు', ttsLang: 'te-IN' },
+    kn: { name: 'Kannada', nativeName: 'ಕನ್ನಡ', ttsLang: 'kn-IN' },
+    bn: { name: 'Bengali', nativeName: 'বাংলা', ttsLang: 'bn-IN' },
+    mr: { name: 'Marathi', nativeName: 'मराठी', ttsLang: 'mr-IN' },
+    gu: { name: 'Gujarati', nativeName: 'ગુજરાતી', ttsLang: 'gu-IN' },
+    pa: { name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ', ttsLang: 'pa-IN' },
+    es: { name: 'Spanish', nativeName: 'Espanol', ttsLang: 'es-ES' },
+    fr: { name: 'French', nativeName: 'Francais', ttsLang: 'fr-FR' },
+    de: { name: 'German', nativeName: 'Deutsch', ttsLang: 'de-DE' },
+    ar: { name: 'Arabic', nativeName: 'العربية', ttsLang: 'ar-SA' },
+    zh: { name: 'Chinese', nativeName: '中文', ttsLang: 'zh-CN' },
+    ja: { name: 'Japanese', nativeName: '日本語', ttsLang: 'ja-JP' }
+};
+
+var NEEDS = {
+    en: {
+        greeting: "Hello {name}, what would you like to communicate today?",
+        main: [
+            { id: "food", icon: "🍽️", label: "Food & Drink", sub: [
+                { icon: "😋", label: "I am very hungry" },
+                { icon: "🍽️", label: "I am a little hungry" },
+                { icon: "🚫", label: "I want to skip this meal" },
+                { icon: "⭐", label: "I want my favourite snack" },
+                { icon: "💧", label: "I need water" },
+                { icon: "☕", label: "I would like coffee" },
+                { icon: "🍵", label: "I would like tea" },
+                { icon: "🥤", label: "I want juice or a cold drink" },
+                { icon: "🥛", label: "I would like milk" },
+                { icon: "🍲", label: "I want something warm to eat" }
+            ]},
+            { id: "pain", icon: "🩹", label: "Pain & Discomfort", sub: [
+                { icon: "😣", label: "I am in a lot of pain" },
+                { icon: "🤒", label: "I have a mild pain" },
+                { icon: "🤒", label: "I feel feverish" },
+                { icon: "😰", label: "I feel nauseous" },
+                { icon: "💊", label: "I need my medicine" },
+                { icon: "🦵", label: "My legs are hurting" },
+                { icon: "💆", label: "I have a headache" },
+                { icon: "🫁", label: "I am having trouble breathing" }
+            ]},
+            { id: "bathroom", icon: "🚻", label: "Bathroom Needs", sub: [
+                { icon: "🚽", label: "I need to use the bathroom" },
+                { icon: "🧲", label: "I need help getting to the bathroom" },
+                { icon: "🧹", label: "I need to be cleaned up" },
+                { icon: "👕", label: "I need a change of clothes" }
+            ]},
+            { id: "comfort", icon: "🛏️", label: "Comfort & Position", sub: [
+                { icon: "🔄", label: "Please help me turn over" },
+                { icon: "⬆️", label: "Please raise my head/pillow" },
+                { icon: "🥶", label: "I am feeling cold" },
+                { icon: "🥵", label: "I am feeling hot" },
+                { icon: "🪟", label: "Please open the window" },
+                { icon: "💡", label: "Please adjust the light" },
+                { icon: "🛏️", label: "Please change my bedsheet" }
+            ]},
+            { id: "emotional", icon: "💬", label: "Talk & Company", sub: [
+                { icon: "🤗", label: "I want someone to sit with me" },
+                { icon: "💬", label: "I want to talk to someone" },
+                { icon: "📞", label: "I want to call a family member" },
+                { icon: "🙏", label: "I want to pray" },
+                { icon: "📖", label: "Please read to me" },
+                { icon: "😊", label: "I am feeling happy today" },
+                { icon: "😢", label: "I am feeling sad" }
+            ]},
+            { id: "alone", icon: "🤫", label: "Need Alone Time", sub: [
+                { icon: "😴", label: "I want to sleep, please don't disturb" },
+                { icon: "🤫", label: "I need some quiet time" }
+            ]},
+            { id: "entertainment", icon: "📺", label: "TV & Entertainment", sub: [
+                { icon: "📺", label: "I want to watch TV" },
+                { icon: "⚽", label: "I want to watch sports" },
+                { icon: "📰", label: "I want to watch the news" },
+                { icon: "🎬", label: "I want to watch a movie" },
+                { icon: "😂", label: "I want to watch something funny" },
+                { icon: "🎵", label: "I want to listen to music" },
+                { icon: "📻", label: "I want to listen to the radio" },
+                { icon: "🔇", label: "Please turn off the TV" },
+                { icon: "🔊", label: "Please increase the volume" },
+                { icon: "🔉", label: "Please decrease the volume" },
+                { icon: "📱", label: "Please change the channel" }
+            ]},
+            { id: "medical", icon: "🏥", label: "Medical Needs", sub: [
+                { icon: "👨‍⚕️", label: "I need to see the doctor" },
+                { icon: "💊", label: "It is time for my medicine" },
+                { icon: "🩺", label: "I need my blood pressure checked" },
+                { icon: "🩸", label: "I need my sugar level checked" },
+                { icon: "🤧", label: "I am not feeling well at all" }
+            ]},
+            { id: "thankyou", icon: "❤️", label: "Kind Words", sub: [
+                { icon: "🙏", label: "Thank you so much" },
+                { icon: "❤️", label: "I love you" },
+                { icon: "😊", label: "You are doing a great job" },
+                { icon: "🤗", label: "Please stay with me" },
+                { icon: "💪", label: "I am feeling better today" }
+            ]}
+        ]
+    },
+    ml: {
+        greeting: "ഹലോ {name}, ഇന്ന് എന്താണ് ആശയവിനിമയം ചെയ്യാൻ ആഗ്രഹിക്കുന്നത്?",
+        main: [
+            { id: "food", icon: "🍽️", label: "ഭക്ഷണവും പാനീയവും", sub: [
+                { icon: "😋", label: "എനിക്ക് വളരെ വിശക്കുന്നു" },
+                { icon: "🍽️", label: "എനിക്ക് ചെറിയ വിശപ്പുണ്ട്" },
+                { icon: "🚫", label: "ഈ ഭക്ഷണം ഒഴിവാക്കണം" },
+                { icon: "⭐", label: "എനിക്ക് ഇഷ്ടമുള്ള ലഘുഭക്ഷണം വേണം" },
+                { icon: "💧", label: "എനിക്ക് വെള്ളം വേണം" },
+                { icon: "☕", label: "കാപ്പി വേണം" },
+                { icon: "🍵", label: "ചായ വേണം" },
+                { icon: "🥤", label: "ജ്യൂസ് അല്ലെങ്കിൽ തണുത്ത പാനീയം വേണം" },
+                { icon: "🥛", label: "പാൽ വേണം" },
+                { icon: "🍲", label: "ചൂടുള്ള എന്തെങ്കിലും കഴിക്കണം" }
+            ]},
+            { id: "pain", icon: "🩹", label: "വേദനയും അസ്വസ്ഥതയും", sub: [
+                { icon: "😣", label: "എനിക്ക് വളരെ വേദനയുണ്ട്" },
+                { icon: "🤒", label: "ചെറിയ വേദനയുണ്ട്" },
+                { icon: "🤒", label: "പനി പോലെ തോന്നുന്നു" },
+                { icon: "😰", label: "ഓക്കാനം തോന്നുന്നു" },
+                { icon: "💊", label: "മരുന്ന് വേണം" },
+                { icon: "🦵", label: "കാലുകൾ വേദനിക്കുന്നു" },
+                { icon: "💆", label: "തലവേദനയുണ്ട്" },
+                { icon: "🫁", label: "ശ്വാസം മുട്ടുന്നു" }
+            ]},
+            { id: "bathroom", icon: "🚻", label: "ബാത്ത്‌റൂം ആവശ്യങ്ങൾ", sub: [
+                { icon: "🚽", label: "ബാത്ത്‌റൂമിൽ പോകണം" },
+                { icon: "🧲", label: "ബാത്ത്‌റൂമിലേക്ക് സഹായം വേണം" },
+                { icon: "🧹", label: "വൃത്തിയാക്കണം" },
+                { icon: "👕", label: "വസ്ത്രം മാറ്റണം" }
+            ]},
+            { id: "comfort", icon: "🛏️", label: "സുഖവും സ്ഥാനവും", sub: [
+                { icon: "🔄", label: "തിരിയാൻ സഹായിക്കൂ" },
+                { icon: "⬆️", label: "തലയിണ ഉയർത്തൂ" },
+                { icon: "🥶", label: "തണുപ്പ് തോന്നുന്നു" },
+                { icon: "🥵", label: "ചൂട് തോന്നുന്നു" },
+                { icon: "🪟", label: "ജനാല തുറക്കൂ" },
+                { icon: "💡", label: "വെളിച്ചം ക്രമീകരിക്കൂ" },
+                { icon: "🛏️", label: "ബെഡ്‌ഷീറ്റ് മാറ്റൂ" }
+            ]},
+            { id: "emotional", icon: "💬", label: "സംസാരവും കൂട്ടും", sub: [
+                { icon: "🤗", label: "ആരെങ്കിലും കൂടെ ഇരിക്കണം" },
+                { icon: "💬", label: "ആരോടെങ്കിലും സംസാരിക്കണം" },
+                { icon: "📞", label: "കുടുംബാംഗത്തെ വിളിക്കണം" },
+                { icon: "🙏", label: "പ്രാർത്ഥിക്കണം" },
+                { icon: "📖", label: "വായിച്ചു തരൂ" },
+                { icon: "😊", label: "ഇന്ന് സന്തോഷമുണ്ട്" },
+                { icon: "😢", label: "സങ്കടം തോന്നുന്നു" }
+            ]},
+            { id: "alone", icon: "🤫", label: "ഒറ്റയ്ക്ക് ഇരിക്കണം", sub: [
+                { icon: "😴", label: "ഉറങ്ങണം, ശല്യപ്പെടുത്തരുത്" },
+                { icon: "🤫", label: "നിശ്ശബ്ദ സമയം വേണം" }
+            ]},
+            { id: "entertainment", icon: "📺", label: "ടിവിയും വിനോദവും", sub: [
+                { icon: "📺", label: "ടിവി കാണണം" },
+                { icon: "⚽", label: "സ്പോർട്സ് കാണണം" },
+                { icon: "📰", label: "വാർത്ത കാണണം" },
+                { icon: "🎬", label: "സിനിമ കാണണം" },
+                { icon: "😂", label: "രസകരമായ എന്തെങ്കിലും കാണണം" },
+                { icon: "🎵", label: "പാട്ട് കേൾക്കണം" },
+                { icon: "📻", label: "റേഡിയോ കേൾക്കണം" },
+                { icon: "🔇", label: "ടിവി ഓഫ് ചെയ്യൂ" },
+                { icon: "🔊", label: "ശബ്ദം കൂട്ടൂ" },
+                { icon: "🔉", label: "ശബ്ദം കുറയ്ക്കൂ" },
+                { icon: "📱", label: "ചാനൽ മാറ്റൂ" }
+            ]},
+            { id: "medical", icon: "🏥", label: "വൈദ്യ ആവശ്യങ്ങൾ", sub: [
+                { icon: "👨‍⚕️", label: "ഡോക്ടറെ കാണണം" },
+                { icon: "💊", label: "മരുന്ന് കഴിക്കാൻ സമയമായി" },
+                { icon: "🩺", label: "ബ്ലഡ് പ്രഷർ നോക്കണം" },
+                { icon: "🩸", label: "ഷുഗർ ലെവൽ നോക്കണം" },
+                { icon: "🤧", label: "ഒട്ടും സുഖമില്ല" }
+            ]},
+            { id: "thankyou", icon: "❤️", label: "സ്നേഹ വാക്കുകൾ", sub: [
+                { icon: "🙏", label: "വളരെ നന്ദി" },
+                { icon: "❤️", label: "ഞാൻ നിന്നെ സ്നേഹിക്കുന്നു" },
+                { icon: "😊", label: "നീ വളരെ നന്നായി ചെയ്യുന്നു" },
+                { icon: "🤗", label: "ദയവായി കൂടെ ഇരിക്കൂ" },
+                { icon: "💪", label: "ഇന്ന് എനിക്ക് കുറച്ച് ഭേദമുണ്ട്" }
+            ]}
+        ]
+    },
+        hi: {
+        greeting: "नमस्ते {name}, आज आप क्या कहना चाहेंगे?",
+        main: [
+            { id: "food", icon: "🍽️", label: "खाना और पीना", sub: [
+                { icon: "😋", label: "मुझे बहुत भूख लगी है" },
+                { icon: "🍽️", label: "मुझे थोड़ी भूख लगी है" },
+                { icon: "🚫", label: "मुझे यह खाना नहीं चाहिए" },
+                { icon: "⭐", label: "मुझे मेरा पसंदीदा नाश्ता चाहिए" },
+                { icon: "💧", label: "मुझे पानी चाहिए" },
+                { icon: "☕", label: "मुझे कॉफी चाहिए" },
+                { icon: "🍵", label: "मुझे चाय चाहिए" },
+                { icon: "🥤", label: "मुझे जूस या ठंडा पेय चाहिए" },
+                { icon: "🥛", label: "मुझे दूध चाहिए" },
+                { icon: "🍲", label: "मुझे कुछ गर्म खाना चाहिए" }
+            ]},
+            { id: "pain", icon: "🩹", label: "दर्द और तकलीफ", sub: [
+                { icon: "😣", label: "मुझे बहुत दर्द हो रहा है" },
+                { icon: "🤕", label: "मुझे हल्का दर्द है" },
+                { icon: "🤒", label: "मुझे बुखार लग रहा है" },
+                { icon: "😰", label: "मुझे उल्टी जैसा लग रहा है" },
+                { icon: "💊", label: "मुझे दवाई चाहिए" },
+                { icon: "🦵", label: "मेरे पैरों में दर्द है" },
+                { icon: "💆", label: "मेरे सिर में दर्द है" },
+                { icon: "🫁", label: "मुझे सांस लेने में तकलीफ हो रही है" }
+            ]},
+            { id: "bathroom", icon: "🚻", label: "बाथरूम की जरूरत", sub: [
+                { icon: "🚽", label: "मुझे बाथरूम जाना है" },
+                { icon: "🧲", label: "मुझे बाथरूम जाने में मदद चाहिए" },
+                { icon: "🧹", label: "मुझे साफ करना है" },
+                { icon: "👕", label: "मुझे कपड़े बदलने हैं" }
+            ]},
+            { id: "comfort", icon: "🛏️", label: "आराम और स्थिति", sub: [
+                { icon: "🔄", label: "कृपया मुझे पलटने में मदद करें" },
+                { icon: "⬆️", label: "कृपया मेरा तकिया ऊपर करें" },
+                { icon: "🥶", label: "मुझे ठंड लग रही है" },
+                { icon: "🥵", label: "मुझे गर्मी लग रही है" },
+                { icon: "🪟", label: "कृपया खिड़की खोलें" },
+                { icon: "💡", label: "कृपया रोशनी कम करें" },
+                { icon: "🛏️", label: "कृपया चादर बदलें" }
+            ]},
+            { id: "emotional", icon: "💬", label: "बात और साथ", sub: [
+                { icon: "🤗", label: "मेरे पास कोई बैठे" },
+                { icon: "💬", label: "मुझे किसी से बात करनी है" },
+                { icon: "📞", label: "मुझे परिवार को फोन करना है" },
+                { icon: "🙏", label: "मुझे प्रार्थना करनी है" },
+                { icon: "📖", label: "कृपया मुझे कुछ पढ़कर सुनाएं" },
+                { icon: "😊", label: "आज मैं खुश हूं" },
+                { icon: "😢", label: "मुझे दुख हो रहा है" }
+            ]},
+            { id: "alone", icon: "🤫", label: "अकेले रहना है", sub: [
+                { icon: "😴", label: "मुझे सोना है, परेशान मत करो" },
+                { icon: "🤫", label: "मुझे शांति चाहिए" }
+            ]},
+            { id: "entertainment", icon: "📺", label: "टीवी और मनोरंजन", sub: [
+                { icon: "📺", label: "मुझे टीवी देखना है" },
+                { icon: "⚽", label: "मुझे खेल देखना है" },
+                { icon: "📰", label: "मुझे समाचार देखना है" },
+                { icon: "🎬", label: "मुझे फिल्म देखनी है" },
+                { icon: "😂", label: "कुछ मजेदार दिखाओ" },
+                { icon: "🎵", label: "मुझे गाना सुनना है" },
+                { icon: "📻", label: "मुझे रेडियो सुनना है" },
+                { icon: "🔇", label: "टीवी बंद करो" },
+                { icon: "🔊", label: "आवाज बढ़ाओ" },
+                { icon: "🔉", label: "आवाज कम करो" },
+                { icon: "📱", label: "चैनल बदलो" }
+            ]},
+            { id: "medical", icon: "🏥", label: "चिकित्सा जरूरत", sub: [
+                { icon: "👨‍⚕️", label: "मुझे डॉक्टर से मिलना है" },
+                { icon: "💊", label: "दवाई का समय हो गया" },
+                { icon: "🩺", label: "मेरा ब्लड प्रेशर चेक करो" },
+                { icon: "🩸", label: "मेरा शुगर लेवल चेक करो" },
+                { icon: "🤧", label: "मेरी तबीयत बिल्कुल ठीक नहीं है" }
+            ]},
+            { id: "thankyou", icon: "❤️", label: "प्यार भरे शब्द", sub: [
+                { icon: "🙏", label: "बहुत बहुत धन्यवाद" },
+                { icon: "❤️", label: "मैं तुमसे प्यार करता हूं" },
+                { icon: "😊", label: "तुम बहुत अच्छा काम कर रहे हो" },
+                { icon: "🤗", label: "कृपया मेरे पास रहो" },
+                { icon: "💪", label: "आज मैं बेहतर महसूस कर रहा हूं" }
+            ]}
+        ]
+    },
+    te: {
+        greeting: "హలో {name}, ఈ రోజు మీరు ఏమి చెప్పాలనుకుంటున్నారు?",
+        main: [
+            { id: "food", icon: "🍽️", label: "ఆహారం & పానీయం", sub: [
+                { icon: "😋", label: "నాకు చాలా ఆకలిగా ఉంది" },
+                { icon: "🍽️", label: "నాకు కొంచెం ఆకలిగా ఉంది" },
+                { icon: "🚫", label: "ఈ భోజనం వద్దు" },
+                { icon: "⭐", label: "నాకు ఇష్టమైన స్నాక్ కావాలి" },
+                { icon: "💧", label: "నాకు నీళ్ళు కావాలి" },
+                { icon: "☕", label: "నాకు కాఫీ కావాలి" },
+                { icon: "🍵", label: "నాకు టీ కావాలి" },
+                { icon: "🥤", label: "జ్యూస్ లేదా చల్లని పానీయం కావాలి" },
+                { icon: "🥛", label: "నాకు పాలు కావాలి" },
+                { icon: "🍲", label: "వేడిగా ఏదైనా తినాలి" }
+            ]},
+            { id: "pain", icon: "🩹", label: "నొప్పి & అసౌకర్యం", sub: [
+                { icon: "😣", label: "నాకు చాలా నొప్పిగా ఉంది" },
+                { icon: "🤕", label: "కొంచెం నొప్పిగా ఉంది" },
+                { icon: "🤒", label: "జ్వరంగా ఉంది" },
+                { icon: "😰", label: "వాంతి వస్తున్నట్లు ఉంది" },
+                { icon: "💊", label: "నాకు మందు కావాలి" },
+                { icon: "🦵", label: "కాళ్ళు నొప్పిగా ఉన్నాయి" },
+                { icon: "💆", label: "తలనొప్పిగా ఉంది" },
+                { icon: "🫁", label: "ఊపిరి తీసుకోవడం కష్టంగా ఉంది" }
+            ]},
+            { id: "bathroom", icon: "🚻", label: "బాత్రూం అవసరాలు", sub: [
+                { icon: "🚽", label: "నాకు బాత్రూం కావాలి" },
+                { icon: "🧲", label: "బాత్రూంకి సహాయం కావాలి" },
+                { icon: "🧹", label: "శుభ్రం చేయాలి" },
+                { icon: "👕", label: "బట్టలు మార్చాలి" }
+            ]},
+            { id: "comfort", icon: "🛏️", label: "సౌకర్యం & స్థానం", sub: [
+                { icon: "🔄", label: "తిరగడానికి సహాయం చేయండి" },
+                { icon: "⬆️", label: "తలగడ పైకి ఎత్తండి" },
+                { icon: "🥶", label: "చలిగా ఉంది" },
+                { icon: "🥵", label: "వేడిగా ఉంది" },
+                { icon: "🪟", label: "కిటికీ తెరవండి" },
+                { icon: "💡", label: "లైట్ సర్దండి" },
+                { icon: "🛏️", label: "బెడ్‌షీట్ మార్చండి" }
+            ]},
+            { id: "emotional", icon: "💬", label: "మాట్లాడాలి & తోడు", sub: [
+                { icon: "🤗", label: "ఎవరైనా నా పక్కన కూర్చోండి" },
+                { icon: "💬", label: "ఎవరితోనైనా మాట్లాడాలి" },
+                { icon: "📞", label: "కుటుంబానికి ఫోన్ చేయాలి" },
+                { icon: "🙏", label: "ప్రార్థన చేయాలి" },
+                { icon: "📖", label: "చదివి వినిపించండి" },
+                { icon: "😊", label: "ఈ రోజు సంతోషంగా ఉంది" },
+                { icon: "😢", label: "బాధగా ఉంది" }
+            ]},
+            { id: "alone", icon: "🤫", label: "ఒంటరిగా ఉండాలి", sub: [
+                { icon: "😴", label: "నిద్రపోతాను, డిస్టర్బ్ చేయకండి" },
+                { icon: "🤫", label: "కొంచెం నిశ్శబ్దంగా ఉండాలి" }
+            ]},
+            { id: "entertainment", icon: "📺", label: "టీవీ & వినోదం", sub: [
+                { icon: "📺", label: "టీవీ చూడాలి" },
+                { icon: "⚽", label: "స్పోర్ట్స్ చూడాలి" },
+                { icon: "📰", label: "న్యూస్ చూడాలి" },
+                { icon: "🎬", label: "సినిమా చూడాలి" },
+                { icon: "😂", label: "ఏదైనా ఫన్నీగా చూపించండి" },
+                { icon: "🎵", label: "పాట వినాలి" },
+                { icon: "📻", label: "రేడియో వినాలి" },
+                { icon: "🔇", label: "టీవీ ఆపండి" },
+                { icon: "🔊", label: "వాల్యూమ్ పెంచండి" },
+                { icon: "🔉", label: "వాల్యూమ్ తగ్గించండి" },
+                { icon: "📱", label: "ఛానెల్ మార్చండి" }
+            ]},
+            { id: "medical", icon: "🏥", label: "వైద్య అవసరాలు", sub: [
+                { icon: "👨‍⚕️", label: "డాక్టర్‌ని చూడాలి" },
+                { icon: "💊", label: "మందు వేసుకోవాల్సిన సమయం" },
+                { icon: "🩺", label: "BP చెక్ చేయండి" },
+                { icon: "🩸", label: "షుగర్ లెవల్ చెక్ చేయండి" },
+                { icon: "🤧", label: "ఒంట్లో బాగోలేదు" }
+            ]},
+            { id: "thankyou", icon: "❤️", label: "ప్రేమ మాటలు", sub: [
+                { icon: "🙏", label: "చాలా ధన్యవాదాలు" },
+                { icon: "❤️", label: "నేను నిన్ను ప్రేమిస్తున్నాను" },
+                { icon: "😊", label: "నువ్వు చాలా బాగా చేస్తున్నావు" },
+                { icon: "🤗", label: "దయచేసి నా దగ్గర ఉండు" },
+                { icon: "💪", label: "ఈ రోజు నాకు కొంచెం బాగుంది" }
+            ]}
+        ]
+    },
+    ta: {
+        greeting: "வணக்கம் {name}, இன்று என்ன சொல்ல விரும்புகிறீர்கள்?",
+        main: [
+            { id: "food", icon: "🍽️", label: "உணவு & பானம்", sub: [
+                { icon: "😋", label: "எனக்கு மிகவும் பசிக்கிறது" },
+                { icon: "🍽️", label: "கொஞ்சம் பசிக்கிறது" },
+                { icon: "🚫", label: "இந்த சாப்பாடு வேண்டாம்" },
+                { icon: "⭐", label: "எனக்கு பிடித்த ஸ்நாக் வேண்டும்" },
+                { icon: "💧", label: "தண்ணீர் வேண்டும்" },
+                { icon: "☕", label: "காபி வேண்டும்" },
+                { icon: "🍵", label: "டீ வேண்டும்" },
+                { icon: "🥤", label: "ஜூஸ் அல்லது குளிர் பானம் வேண்டும்" },
+                { icon: "🥛", label: "பால் வேண்டும்" },
+                { icon: "🍲", label: "சூடாக ஏதாவது சாப்பிட வேண்டும்" }
+            ]},
+            { id: "pain", icon: "🩹", label: "வலி & அசௌகரியம்", sub: [
+                { icon: "😣", label: "எனக்கு மிகவும் வலிக்கிறது" },
+                { icon: "🤕", label: "கொஞ்சம் வலிக்கிறது" },
+                { icon: "🤒", label: "காய்ச்சலாக இருக்கிறது" },
+                { icon: "😰", label: "வாந்தி வருவது போல் இருக்கிறது" },
+                { icon: "💊", label: "மருந்து வேண்டும்" },
+                { icon: "🦵", label: "கால்கள் வலிக்கிறது" },
+                { icon: "💆", label: "தலைவலிக்கிறது" },
+                { icon: "🫁", label: "மூச்சு விடுவது கஷ்டமாக இருக்கிறது" }
+            ]},
+            { id: "bathroom", icon: "🚻", label: "குளியலறை தேவைகள்", sub: [
+                { icon: "🚽", label: "குளியலறைக்கு போக வேண்டும்" },
+                { icon: "🧲", label: "குளியலறைக்கு உதவி வேண்டும்" },
+                { icon: "🧹", label: "சுத்தம் செய்ய வேண்டும்" },
+                { icon: "👕", label: "உடை மாற்ற வேண்டும்" }
+            ]},
+            { id: "comfort", icon: "🛏️", label: "வசதி & நிலை", sub: [
+                { icon: "🔄", label: "திரும்ப உதவி செய்யுங்கள்" },
+                { icon: "⬆️", label: "தலையணையை உயர்த்துங்கள்" },
+                { icon: "🥶", label: "குளிராக இருக்கிறது" },
+                { icon: "🥵", label: "வெப்பமாக இருக்கிறது" },
+                { icon: "🪟", label: "ஜன்னலைத் திறங்கள்" },
+                { icon: "💡", label: "விளக்கை சரி செய்யுங்கள்" },
+                { icon: "🛏️", label: "படுக்கை விரிப்பை மாற்றுங்கள்" }
+            ]},
+            { id: "emotional", icon: "💬", label: "பேச்சு & துணை", sub: [
+                { icon: "🤗", label: "யாராவது என் அருகில் இருக்கணும்" },
+                { icon: "💬", label: "யாரிடமாவது பேச வேண்டும்" },
+                { icon: "📞", label: "குடும்பத்தை அழைக்க வேண்டும்" },
+                { icon: "🙏", label: "பிரார்த்தனை செய்ய வேண்டும்" },
+                { icon: "📖", label: "படித்துக் காட்டுங்கள்" },
+                { icon: "😊", label: "இன்று மகிழ்ச்சியாக இருக்கிறேன்" },
+                { icon: "😢", label: "சோகமாக இருக்கிறது" }
+            ]},
+            { id: "alone", icon: "🤫", label: "தனிமை வேண்டும்", sub: [
+                { icon: "😴", label: "தூங்க வேண்டும், தொந்தரவு செய்யாதீர்கள்" },
+                { icon: "🤫", label: "அமைதியான நேரம் வேண்டும்" }
+            ]},
+            { id: "entertainment", icon: "📺", label: "டிவி & பொழுதுபோக்கு", sub: [
+                { icon: "📺", label: "டிவி பார்க்க வேண்டும்" },
+                { icon: "⚽", label: "விளையாட்டு பார்க்க வேண்டும்" },
+                { icon: "📰", label: "செய்திகள் பார்க்க வேண்டும்" },
+                { icon: "🎬", label: "சினிமா பார்க்க வேண்டும்" },
+                { icon: "😂", label: "ஏதாவது சிரிக்க வைக்கும் காட்டுங்கள்" },
+                { icon: "🎵", label: "பாட்டு கேட்க வேண்டும்" },
+                { icon: "📻", label: "ரேடியோ கேட்க வேண்டும்" },
+                { icon: "🔇", label: "டிவி அணையுங்கள்" },
+                { icon: "🔊", label: "சத்தம் கூட்டுங்கள்" },
+                { icon: "🔉", label: "சத்தம் குறையுங்கள்" },
+                { icon: "📱", label: "சேனல் மாற்றுங்கள்" }
+            ]},
+            { id: "medical", icon: "🏥", label: "மருத்துவ தேவைகள்", sub: [
+                { icon: "👨‍⚕️", label: "டாக்டரைப் பார்க்க வேண்டும்" },
+                { icon: "💊", label: "மருந்து நேரம் ஆகிவிட்டது" },
+                { icon: "🩺", label: "BP பரிசோதிக்க வேண்டும்" },
+                { icon: "🩸", label: "சர்க்கரை அளவு பரிசோதிக்க வேண்டும்" },
+                { icon: "🤧", label: "உடம்பு சரியில்லை" }
+            ]},
+            { id: "thankyou", icon: "❤️", label: "அன்பு வார்த்தைகள்", sub: [
+                { icon: "🙏", label: "மிக்க நன்றி" },
+                { icon: "❤️", label: "நான் உன்னை நேசிக்கிறேன்" },
+                { icon: "😊", label: "நீங்கள் மிகவும் நன்றாக செய்கிறீர்கள்" },
+                { icon: "🤗", label: "தயவுசெய்து என் அருகில் இருங்கள்" },
+                { icon: "💪", label: "இன்று எனக்கு கொஞ்சம் நல்லாருக்கு" }
+            ]}
+        ]
+    },
+    kn: {
+        greeting: "ನಮಸ್ಕಾರ {name}, ಇಂದು ನೀವು ಏನು ಹೇಳಲು ಬಯಸುತ್ತೀರಿ?",
+        main: [
+            { id: "food", icon: "🍽️", label: "ಊಟ & ಪಾನೀಯ", sub: [
+                { icon: "😋", label: "ನನಗೆ ತುಂಬಾ ಹಸಿವಾಗಿದೆ" },
+                { icon: "🍽️", label: "ಸ್ವಲ್ಪ ಹಸಿವಾಗಿದೆ" },
+                { icon: "🚫", label: "ಈ ಊಟ ಬೇಡ" },
+                { icon: "⭐", label: "ನನಗೆ ಇಷ್ಟವಾದ ತಿಂಡಿ ಬೇಕು" },
+                { icon: "💧", label: "ನನಗೆ ನೀರು ಬೇಕು" },
+                { icon: "☕", label: "ಕಾಫಿ ಬೇಕು" },
+                { icon: "🍵", label: "ಚಹಾ ಬೇಕು" },
+                { icon: "🥤", label: "ಜ್ಯೂಸ್ ಅಥವಾ ತಂಪು ಪಾನೀಯ ಬೇಕು" },
+                { icon: "🥛", label: "ಹಾಲು ಬೇಕು" },
+                { icon: "🍲", label: "ಬಿಸಿಯಾಗಿ ಏನಾದರೂ ತಿನ್ನಬೇಕು" }
+            ]},
+            { id: "pain", icon: "🩹", label: "ನೋವು & ಅಸ್ವಸ್ಥತೆ", sub: [
+                { icon: "😣", label: "ನನಗೆ ತುಂಬಾ ನೋವಾಗುತ್ತಿದೆ" },
+                { icon: "🤕", label: "ಸ್ವಲ್ಪ ನೋವಾಗುತ್ತಿದೆ" },
+                { icon: "🤒", label: "ಜ್ವರ ಬಂದಿದೆ" },
+                { icon: "😰", label: "ವಾಂತಿ ಬರುವ ಹಾಗಿದೆ" },
+                { icon: "💊", label: "ನನಗೆ ಔಷಧಿ ಬೇಕು" },
+                { icon: "🦵", label: "ಕಾಲುಗಳು ನೋಯುತ್ತಿವೆ" },
+                { icon: "💆", label: "ತಲೆನೋವು ಬಂದಿದೆ" },
+                { icon: "🫁", label: "ಉಸಿರಾಟ ಕಷ್ಟವಾಗುತ್ತಿದೆ" }
+            ]},
+            { id: "bathroom", icon: "🚻", label: "ಬಾತ್ರೂಮ್ ಅವಶ್ಯಕತೆ", sub: [
+                { icon: "🚽", label: "ಬಾತ್ರೂಮ್‌ಗೆ ಹೋಗಬೇಕು" },
+                { icon: "🧲", label: "ಬಾತ್ರೂಮ್‌ಗೆ ಸಹಾಯ ಬೇಕು" },
+                { icon: "🧹", label: "ಸ್ವಚ್ಛ ಮಾಡಬೇಕು" },
+                { icon: "👕", label: "ಬಟ್ಟೆ ಬದಲಾಯಿಸಬೇಕು" }
+            ]},
+            { id: "comfort", icon: "🛏️", label: "ಆರಾಮ & ಸ್ಥಾನ", sub: [
+                { icon: "🔄", label: "ಹೊರಳಲು ಸಹಾಯ ಮಾಡಿ" },
+                { icon: "⬆️", label: "ತಲೆದಿಂಬು ಮೇಲೆ ಮಾಡಿ" },
+                { icon: "🥶", label: "ಚಳಿಯಾಗುತ್ತಿದೆ" },
+                { icon: "🥵", label: "ಸೆಖೆಯಾಗುತ್ತಿದೆ" },
+                { icon: "🪟", label: "ಕಿಟಕಿ ತೆರೆಯಿರಿ" },
+                { icon: "💡", label: "ಬೆಳಕು ಸರಿಮಾಡಿ" },
+                { icon: "🛏️", label: "ಹಾಸಿಗೆ ಬದಲಾಯಿಸಿ" }
+            ]},
+            { id: "emotional", icon: "💬", label: "ಮಾತು & ಜೊತೆ", sub: [
+                { icon: "🤗", label: "ಯಾರಾದರೂ ನನ್ನ ಹತ್ತಿರ ಕುಳಿತುಕೊಳ್ಳಿ" },
+                { icon: "💬", label: "ಯಾರಾದರೂ ಜೊತೆ ಮಾತಾಡಬೇಕು" },
+                { icon: "📞", label: "ಕುಟುಂಬಕ್ಕೆ ಫೋನ್ ಮಾಡಬೇಕು" },
+                { icon: "🙏", label: "ಪ್ರಾರ್ಥನೆ ಮಾಡಬೇಕು" },
+                { icon: "📖", label: "ಓದಿ ಹೇಳಿ" },
+                { icon: "😊", label: "ಇಂದು ಖುಷಿಯಾಗಿದ್ದೇನೆ" },
+                { icon: "😢", label: "ದುಃಖವಾಗಿದೆ" }
+            ]},
+            { id: "alone", icon: "🤫", label: "ಒಂಟಿಯಾಗಿ ಇರಬೇಕು", sub: [
+                { icon: "😴", label: "ನಿದ್ರೆ ಮಾಡಬೇಕು, ತೊಂದರೆ ಕೊಡಬೇಡಿ" },
+                { icon: "🤫", label: "ಸ್ವಲ್ಪ ಶಾಂತಿ ಬೇಕು" }
+            ]},
+            { id: "entertainment", icon: "📺", label: "ಟಿವಿ & ಮನೋರಂಜನೆ", sub: [
+                { icon: "📺", label: "ಟಿವಿ ನೋಡಬೇಕು" },
+                { icon: "⚽", label: "ಸ್ಪೋರ್ಟ್ಸ್ ನೋಡಬೇಕು" },
+                { icon: "📰", label: "ಸುದ್ದಿ ನೋಡಬೇಕು" },
+                { icon: "🎬", label: "ಸಿನಿಮಾ ನೋಡಬೇಕು" },
+                { icon: "😂", label: "ಏನಾದರೂ ತಮಾಷೆ ತೋರಿಸಿ" },
+                { icon: "🎵", label: "ಹಾಡು ಕೇಳಬೇಕು" },
+                { icon: "📻", label: "ರೇಡಿಯೋ ಕೇಳಬೇಕು" },
+                { icon: "🔇", label: "ಟಿವಿ ಆಫ್ ಮಾಡಿ" },
+                { icon: "🔊", label: "ಧ್ವನಿ ಹೆಚ್ಚಿಸಿ" },
+                { icon: "🔉", label: "ಧ್ವನಿ ಕಡಿಮೆ ಮಾಡಿ" },
+                { icon: "📱", label: "ಚಾನೆಲ್ ಬದಲಾಯಿಸಿ" }
+            ]},
+            { id: "medical", icon: "🏥", label: "ವೈದ್ಯಕೀಯ ಅವಶ್ಯಕತೆ", sub: [
+                { icon: "👨‍⚕️", label: "ಡಾಕ್ಟರ್ ಅನ್ನು ನೋಡಬೇಕು" },
+                { icon: "💊", label: "ಔಷಧಿ ಸಮಯ ಆಗಿದೆ" },
+                { icon: "🩺", label: "BP ಚೆಕ್ ಮಾಡಿ" },
+                { icon: "🩸", label: "ಶುಗರ್ ಲೆವೆಲ್ ಚೆಕ್ ಮಾಡಿ" },
+                { icon: "🤧", label: "ಹುಷಾರಿಲ್ಲ" }
+            ]},
+            { id: "thankyou", icon: "❤️", label: "ಪ್ರೀತಿ ಮಾತುಗಳು", sub: [
+                { icon: "🙏", label: "ತುಂಬಾ ಧನ್ಯವಾದಗಳು" },
+                { icon: "❤️", label: "ನಾನು ನಿನ್ನನ್ನು ಪ್ರೀತಿಸುತ್ತೇನೆ" },
+                { icon: "😊", label: "ನೀನು ತುಂಬಾ ಚೆನ್ನಾಗಿ ಮಾಡುತ್ತಿದ್ದೀಯ" },
+                { icon: "🤗", label: "ದಯವಿಟ್ಟು ನನ್ನ ಹತ್ತಿರ ಇರು" },
+                { icon: "💪", label: "ಇಂದು ಸ್ವಲ್ಪ ಚೆನ್ನಾಗಿದ್ದೇನೆ" }
+            ]}
+        ]
+    }
+};
+
+var WA_MESSAGES = {
+    en: {
+        categories: [
+            { id: "missing", icon: "💭", label: "Missing Someone", messages: [
+                "I am missing you today",
+                "I wish you were here with me",
+                "Thinking of you",
+                "I miss our conversations",
+                "Hope to see you soon"
+            ]},
+            { id: "visit", icon: "🏠", label: "Requesting Visit", messages: [
+                "Can you come visit me today?",
+                "I would love some company",
+                "Please come when you are free",
+                "Can someone come stay with me for a while?",
+                "I need someone here with me"
+            ]},
+            { id: "feeling", icon: "💗", label: "How I Feel", messages: [
+                "I am feeling good today",
+                "I am not feeling well today",
+                "I feel lonely",
+                "I am happy today",
+                "I feel tired"
+            ]},
+            { id: "request", icon: "🙏", label: "Asking for Something", messages: [
+                "Can you bring me some food?",
+                "I need some things from the store",
+                "Can you call the doctor for me?",
+                "Please bring my medicine",
+                "I need help with something"
+            ]},
+            { id: "love", icon: "❤️", label: "Love & Gratitude", messages: [
+                "I love you",
+                "Thank you for taking care of me",
+                "You mean the world to me",
+                "I am grateful for you",
+                "God bless you"
+            ]}
+        ]
+    },
+    ml: {
+        categories: [
+            { id: "missing", icon: "💭", label: "ആരെയോ ഓർക്കുന്നു", messages: [
+                "ഇന്ന് നിന്നെ ഓർക്കുന്നു",
+                "നീ ഇവിടെ ഉണ്ടായിരുന്നെങ്കിൽ",
+                "നിന്നെ കുറിച്ച് ചിന്തിക്കുന്നു",
+                "നമ്മുടെ സംസാരം ഓർക്കുന്നു",
+                "ഉടൻ കാണാൻ ആഗ്രഹിക്കുന്നു"
+            ]},
+            { id: "visit", icon: "🏠", label: "സന്ദർശനം അഭ്യർത്ഥന", messages: [
+                "ഇന്ന് വരാമോ?",
+                "കൂട്ട് വേണം",
+                "സമയം കിട്ടുമ്പോൾ വരൂ",
+                "ആരെങ്കിലും കുറച്ച് നേരം ഇവിടെ ഇരിക്കാമോ?",
+                "ഇവിടെ ആരെങ്കിലും വേണം"
+            ]},
+            { id: "feeling", icon: "💗", label: "എനിക്ക് എങ്ങനെ തോന്നുന്നു", messages: [
+                "ഇന്ന് നല്ല സുഖമുണ്ട്",
+                "ഇന്ന് സുഖമില്ല",
+                "ഒറ്റയ്ക്ക് തോന്നുന്നു",
+                "ഇന്ന് സന്തോഷമുണ്ട്",
+                "ക്ഷീണം തോന്നുന്നു"
+            ]},
+            { id: "request", icon: "🙏", label: "എന്തെങ്കിലും ചോദിക്കുന്നു", messages: [
+                "ഭക്ഷണം കൊണ്ടുവരാമോ?",
+                "കടയിൽ നിന്ന് ചില സാധനങ്ങൾ വേണം",
+                "ഡോക്ടറെ വിളിക്കാമോ?",
+                "മരുന്ന് കൊണ്ടുവരൂ",
+                "എന്തെങ്കിലും സഹായം വേണം"
+            ]},
+            { id: "love", icon: "❤️", label: "സ്നേഹവും നന്ദിയും", messages: [
+                "ഞാൻ നിന്നെ സ്നേഹിക്കുന്നു",
+                "എന്നെ നോക്കുന്നതിന് നന്ദി",
+                "നീ എനിക്ക് എല്ലാമാണ്",
+                "നിനക്ക് നന്ദിയുണ്ട്",
+                "ദൈവം അനുഗ്രഹിക്കട്ടെ"
+            ]}
+        ]
+    },
+    hi: {
+        categories: [
+            { id: "missing", icon: "💭", label: "किसी की याद", messages: [
+                "आज तुम्हारी बहुत याद आ रही है",
+                "काश तुम यहां होते",
+                "तुम्हारे बारे में सोच रहा हूं",
+                "हमारी बातें याद आती हैं",
+                "जल्दी मिलने की उम्मीद है"
+            ]},
+            { id: "visit", icon: "🏠", label: "मिलने आओ", messages: [
+                "क्या आज आ सकते हो?",
+                "मुझे कुछ साथ चाहिए",
+                "जब फुर्सत हो तब आ जाओ",
+                "कोई थोड़ी देर मेरे पास रह सकता है?",
+                "मुझे यहां किसी की जरूरत है"
+            ]},
+            { id: "feeling", icon: "💗", label: "मेरा हाल", messages: [
+                "आज तबीयत अच्छी है",
+                "आज तबीयत ठीक नहीं है",
+                "अकेलापन महसूस हो रहा है",
+                "आज खुश हूं",
+                "थकान लग रही है"
+            ]},
+            { id: "request", icon: "🙏", label: "कुछ मांगना", messages: [
+                "क्या खाना ला सकते हो?",
+                "दुकान से कुछ सामान चाहिए",
+                "डॉक्टर को बुला सकते हो?",
+                "मेरी दवाई लेकर आओ",
+                "मुझे कुछ मदद चाहिए"
+            ]},
+            { id: "love", icon: "❤️", label: "प्यार और आभार", messages: [
+                "मैं तुमसे प्यार करता हूं",
+                "मेरा ख्याल रखने के लिए शुक्रिया",
+                "तुम मेरे लिए सब कुछ हो",
+                "तुम्हारा आभारी हूं",
+                "भगवान तुम्हें खुश रखे"
+            ]}
+        ]
+    },
+    te: {
+        categories: [
+            { id: "missing", icon: "💭", label: "ఎవరినో మిస్ అవుతున్నాను", messages: [
+                "ఈ రోజు నిన్ను చాలా మిస్ అవుతున్నాను",
+                "నువ్వు ఇక్కడ ఉంటే బాగుండేది",
+                "నీ గురించి ఆలోచిస్తున్నాను",
+                "మన మాటలు గుర్తుకొస్తున్నాయి",
+                "త్వరగా కలవాలని ఉంది"
+            ]},
+            { id: "visit", icon: "🏠", label: "వచ్చి చూడండి", messages: [
+                "ఈ రోజు రాగలవా?",
+                "కొంచెం తోడు కావాలి",
+                "టైం ఉన్నప్పుడు రా",
+                "ఎవరైనా కొంచెం సేపు ఉండగలరా?",
+                "ఇక్కడ ఎవరైనా ఉండాలి"
+            ]},
+            { id: "feeling", icon: "💗", label: "నాకు ఎలా ఉంది", messages: [
+                "ఈ రోజు బాగుంది",
+                "ఈ రోజు బాగోలేదు",
+                "ఒంటరిగా ఉంది",
+                "ఈ రోజు సంతోషంగా ఉంది",
+                "అలసటగా ఉంది"
+            ]},
+            { id: "request", icon: "🙏", label: "ఏదైనా అడగాలి", messages: [
+                "ఆహారం తీసుకురాగలవా?",
+                "షాప్ నుంచి కొన్ని సామానులు కావాలి",
+                "డాక్టర్‌కి ఫోన్ చేయగలవా?",
+                "నా మందులు తీసుకురా",
+                "ఏదైనా సహాయం కావాలి"
+            ]},
+            { id: "love", icon: "❤️", label: "ప్రేమ & కృతజ్ఞత", messages: [
+                "నేను నిన్ను ప్రేమిస్తున్నాను",
+                "నన్ను చూసుకుంటున్నందుకు ధన్యవాదాలు",
+                "నువ్వు నాకు అన్నీ",
+                "నీకు కృతజ్ఞతలు",
+                "దేవుడు నిన్ను ఆశీర్వదించుగాక"
+            ]}
+        ]
+    },
+    ta: {
+        categories: [
+            { id: "missing", icon: "💭", label: "யாரையோ நினைக்கிறேன்", messages: [
+                "இன்று உன்னை மிகவும் நினைக்கிறேன்",
+                "நீ இங்கே இருந்தால் நன்றாக இருக்கும்",
+                "உன்னைப் பற்றி நினைக்கிறேன்",
+                "நம் பேச்சு நினைவுக்கு வருகிறது",
+                "விரைவில் சந்திக்க ஆசை"
+            ]},
+            { id: "visit", icon: "🏠", label: "வந்து பாருங்கள்", messages: [
+                "இன்று வர முடியுமா?",
+                "கொஞ்சம் துணை வேண்டும்",
+                "நேரம் கிடைக்கும்போது வாங்கள்",
+                "யாராவது கொஞ்ச நேரம் இருக்க முடியுமா?",
+                "இங்கே யாராவது வேண்டும்"
+            ]},
+            { id: "feeling", icon: "💗", label: "எனக்கு எப்படி இருக்கு", messages: [
+                "இன்று நல்லாருக்கு",
+                "இன்று உடம்பு சரியில்லை",
+                "தனிமையாக உணர்கிறேன்",
+                "இன்று மகிழ்ச்சியாக இருக்கிறேன்",
+                "களைப்பாக இருக்கிறது"
+            ]},
+            { id: "request", icon: "🙏", label: "ஒன்று கேட்க வேண்டும்", messages: [
+                "சாப்பாடு கொண்டு வர முடியுமா?",
+                "கடையில் இருந்து சில பொருட்கள் வேண்டும்",
+                "டாக்டரை அழைக்க முடியுமா?",
+                "என் மருந்தை கொண்டு வாருங்கள்",
+                "ஏதாவது உதவி வேண்டும்"
+            ]},
+            { id: "love", icon: "❤️", label: "அன்பு & நன்றி", messages: [
+                "நான் உன்னை நேசிக்கிறேன்",
+                "என்னை பார்த்துக்கொள்வதற்கு நன்றி",
+                "நீங்கள் எனக்கு எல்லாம்",
+                "உங்களுக்கு நன்றி",
+                "கடவுள் உங்களை ஆசீர்வதிக்கட்டும்"
+            ]}
+        ]
+    },
+    kn: {
+        categories: [
+            { id: "missing", icon: "💭", label: "ಯಾರನ್ನೋ ನೆನಪಿಸುತ್ತಿದೆ", messages: [
+                "ಇಂದು ನಿನ್ನನ್ನು ತುಂಬಾ ಮಿಸ್ ಮಾಡುತ್ತಿದ್ದೇನೆ",
+                "ನೀನು ಇಲ್ಲಿ ಇದ್ದರೆ ಚೆನ್ನಾಗಿರುತ್ತಿತ್ತು",
+                "ನಿನ್ನ ಬಗ್ಗೆ ಯೋಚಿಸುತ್ತಿದ್ದೇನೆ",
+                "ನಮ್ಮ ಮಾತುಗಳು ನೆನಪಾಗುತ್ತಿವೆ",
+                "ಬೇಗ ಭೇಟಿಯಾಗಬೇಕು"
+            ]},
+            { id: "visit", icon: "🏠", label: "ಬಂದು ನೋಡಿ", messages: [
+                "ಇಂದು ಬರಬಹುದಾ?",
+                "ಸ್ವಲ್ಪ ಜೊತೆ ಬೇಕು",
+                "ಸಮಯ ಸಿಕ್ಕಾಗ ಬನ್ನಿ",
+                "ಯಾರಾದರೂ ಸ್ವಲ್ಪ ಹೊತ್ತು ಇರಬಹುದಾ?",
+                "ಇಲ್ಲಿ ಯಾರಾದರೂ ಬೇಕು"
+            ]},
+            { id: "feeling", icon: "💗", label: "ನನಗೆ ಹೇಗಿದೆ", messages: [
+                "ಇಂದು ಚೆನ್ನಾಗಿದ್ದೇನೆ",
+                "ಇಂದು ಸರಿಯಾಗಿಲ್ಲ",
+                "ಒಂಟಿಯಾಗಿ ಅನಿಸುತ್ತಿದೆ",
+                "ಇಂದು ಖುಷಿಯಾಗಿದ್ದೇನೆ",
+                "ಆಯಾಸವಾಗಿದೆ"
+            ]},
+            { id: "request", icon: "🙏", label: "ಏನಾದರೂ ಕೇಳಬೇಕು", messages: [
+                "ಊಟ ತರಬಹುದಾ?",
+                "ಅಂಗಡಿಯಿಂದ ಕೆಲವು ಸಾಮಾನು ಬೇಕು",
+                "ಡಾಕ್ಟರ್‌ಗೆ ಫೋನ್ ಮಾಡಬಹುದಾ?",
+                "ನನ್ನ ಔಷಧಿ ತಂದುಕೊಡಿ",
+                "ಏನಾದರೂ ಸಹಾಯ ಬೇಕು"
+            ]},
+            { id: "love", icon: "❤️", label: "ಪ್ರೀತಿ & ಕೃತಜ್ಞತೆ", messages: [
+                "ನಾನು ನಿನ್ನನ್ನು ಪ್ರೀತಿಸುತ್ತೇನೆ",
+                "ನನ್ನನ್ನು ನೋಡಿಕೊಳ್ಳುತ್ತಿರುವುದಕ್ಕೆ ಧನ್ಯವಾದ",
+                "ನೀನು ನನಗೆ ಎಲ್ಲವೂ",
+                "ನಿನಗೆ ಕೃತಜ್ಞನಾಗಿದ್ದೇನೆ",
+                "ದೇವರು ನಿನ್ನನ್ನು ಆಶೀರ್ವದಿಸಲಿ"
+            ]}
+        ]
+    }
+};
+// ============================================
+// STATE VARIABLES
+// ============================================
+var currentLang = 'en';
+var currentPage = 'main';
+var pageHistory = [];
+var selectedContact = null;
+var waMessagePage = 'contacts';
+var isFlipping = false;
+var touchStartX = 0;
+var touchStartY = 0;
+var touchStartTime = 0;
+var isDragging = false;
+var dragDirection = null;
+var dragProgress = 0;
+var pendingAction = null;
+var audioContext = null;
+var oscillator = null;
+var sosInterval = null;
+var sosActive = false;
+ 
+// ============================================
+// TEXT TO SPEECH
+// ============================================
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        var utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = LANGUAGES[currentLang].ttsLang;
+        utterance.rate = CONFIG.speechRate;
+        utterance.pitch = CONFIG.speechPitch;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+ 
+// ============================================
+// TOUCH / SWIPE - BIDIRECTIONAL
+// ============================================
+function initTouchListeners() {
+    var pageWrapper = document.querySelector('.page-wrapper');
+    if (!pageWrapper) return;
+ 
+    pageWrapper.addEventListener('touchstart', function(e) {
+        if (isFlipping) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+        isDragging = false;
+        dragDirection = null;
+        dragProgress = 0;
+        var page = document.getElementById('pageContent');
+        if (page) page.style.transition = 'none';
+    }, { passive: true });
+ 
+    pageWrapper.addEventListener('touchmove', function(e) {
+        if (isFlipping) return;
+        var currentX = e.touches[0].clientX;
+        var currentY = e.touches[0].clientY;
+        var diffX = currentX - touchStartX;
+        var diffY = currentY - touchStartY;
+        if (!isDragging && Math.abs(diffX) < Math.abs(diffY)) return;
+        if (Math.abs(diffX) < 15 && !isDragging) return;
+        isDragging = true;
+        var page = document.getElementById('pageContent');
+        if (!page) return;
+        var screenWidth = window.innerWidth;
+        dragProgress = Math.min(Math.abs(diffX) / (screenWidth * 0.5), 1);
+        if (diffX > 0) {
+            dragDirection = 'right';
+            var angle = dragProgress * 90;
+            var shadow = dragProgress * 20;
+            page.style.transform = 'rotateY(' + angle + 'deg)';
+            page.style.transformOrigin = 'left center';
+            page.style.boxShadow = '-' + shadow + 'px 0 ' + (shadow * 2) + 'px rgba(0,0,0,' + (dragProgress * 0.3) + ')';
+            page.style.opacity = String(1 - dragProgress * 0.3);
+        } else {
+            dragDirection = 'left';
+            var angle2 = dragProgress * -90;
+            var shadow2 = dragProgress * 20;
+            page.style.transform = 'rotateY(' + angle2 + 'deg)';
+            page.style.transformOrigin = 'right center';
+            page.style.boxShadow = shadow2 + 'px 0 ' + (shadow2 * 2) + 'px rgba(0,0,0,' + (dragProgress * 0.3) + ')';
+            page.style.opacity = String(1 - dragProgress * 0.3);
+        }
+    }, { passive: true });
+ 
+    pageWrapper.addEventListener('touchend', function(e) {
+        if (!isDragging || isFlipping) {
+            resetPageTransform();
+            return;
+        }
+        var page = document.getElementById('pageContent');
+        if (!page) return;
+        page.style.transition = 'transform 0.4s ease-out, box-shadow 0.4s ease-out, opacity 0.4s ease-out';
+        var swipeTime = Date.now() - touchStartTime;
+        var isQuickSwipe = swipeTime < 300 && dragProgress > 0.15;
+        if (dragProgress > 0.4 || isQuickSwipe) {
+            if (dragDirection === 'right') {
+                page.style.transform = 'rotateY(90deg)';
+                page.style.opacity = '0';
+                setTimeout(function() {
+                    resetPageTransform();
+                    goBack();
+                }, 400);
+            } else {
+                page.style.transform = 'rotateY(-90deg)';
+                page.style.opacity = '0';
+                setTimeout(function() {
+                    resetPageTransform();
+                }, 400);
+            }
+        } else {
+            page.style.transform = 'rotateY(0deg)';
+            page.style.boxShadow = 'none';
+            page.style.opacity = '1';
+            setTimeout(function() {
+                page.style.transition = '';
+                page.style.transformOrigin = '';
+            }, 400);
+        }
+        isDragging = false;
+        dragDirection = null;
+        dragProgress = 0;
+    }, { passive: true });
+}
+ 
+function resetPageTransform() {
+    var page = document.getElementById('pageContent');
+    if (page) {
+        page.style.transform = '';
+        page.style.boxShadow = '';
+        page.style.opacity = '';
+        page.style.transition = '';
+        page.style.transformOrigin = '';
+    }
+}
+ 
+// ============================================
+// PAGE RENDERING
+// ============================================
+function renderMainPage() {
+    var needs = NEEDS[currentLang] || NEEDS['en'];
+    var greeting = needs.greeting.replace('{name}', userProfile.name || 'Friend');
+    var html = '';
+    html += '<div class="greeting-section">';
+    html += '<p class="greeting-message">' + greeting + '</p>';
+    html += '</div>';
+    html += '<div class="needs-grid">';
+    for (var i = 0; i < needs.main.length; i++) {
+        var cat = needs.main[i];
+        html += '<button class="need-btn" onclick="openCategory(\'' + cat.id + '\')">';
+        html += '<span class="icon">' + cat.icon + '</span>';
+        html += '<span class="label">' + cat.label + '</span>';
+        html += '<span class="arrow">&gt;</span>';
+        html += '</button>';
+    }
+    html += '<button class="need-btn" onclick="openWhatsApp()">';
+    html += '<span class="icon">💌</span>';
+    html += '<span class="label">Message Family</span>';
+    html += '<span class="arrow">&gt;</span>';
+    html += '</button>';
+    html += '<button class="need-btn" onclick="openContactManager()">';
+    html += '<span class="icon">👥</span>';
+    html += '<span class="label">Manage Contacts</span>';
+    html += '<span class="arrow">&gt;</span>';
+    html += '</button>';
+    html += '</div>';
+    html += '<div class="alert-section">';
+    html += '<button class="sos-main-btn" onclick="activateSOS()">🚨 SOS Emergency</button>';
+    html += '</div>';
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+    hideBackButton();
+    showDashboardButton();
+    updatePageNumber(1);
+    currentPage = 'main';
+    pageHistory = [];
+}
+ 
+function openCategory(catId) {
+    var needs = NEEDS[currentLang] || NEEDS['en'];
+    var cat = null;
+    for (var i = 0; i < needs.main.length; i++) {
+        if (needs.main[i].id === catId) {
+            cat = needs.main[i];
+            break;
+        }
+    }
+    if (!cat) return;
+    pageHistory.push(currentPage);
+    currentPage = catId;
+    navigateWithFlip(function() { renderSubPage(cat); }, 'forward');
+    logActivity(cat.label, 'Opened category');
+}
+ 
+function renderSubPage(category) {
+    var html = '';
+    html += '<div class="chapter-title">' + category.icon + ' ' + category.label + '</div>';
+    for (var i = 0; i < category.sub.length; i++) {
+        var item = category.sub[i];
+        var safeLabel = item.label.replace(/'/g, "\\'");
+        var safeCatLabel = category.label.replace(/'/g, "\\'");
+        html += '<button class="specific-btn" onclick="speakText(\'' + safeLabel + '\'); logActivity(\'' + safeCatLabel + '\', \'' + safeLabel + '\')">';
+        html += '<span class="icon">' + item.icon + '</span>';
+        html += item.label;
+        html += '</button>';
+    }
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+    showBackButton();
+    updatePageNumber(pageHistory.length + 1);
+}
+ 
+// ============================================
+// NAVIGATION
+// ============================================
+function goBack() {
+    if (pageHistory.length === 0) {
+        renderMainPage();
+        return;
+    }
+    var previousPage = pageHistory.pop();
+    if (previousPage === 'main') {
+        navigateWithFlip(function() { renderMainPage(); }, 'back');
+    } else if (previousPage === 'whatsapp' || previousPage === 'wa-categories' || previousPage === 'wa-messages') {
+        currentPage = previousPage;
+        if (previousPage === 'whatsapp') {
+            navigateWithFlip(function() { renderWhatsAppPage(); }, 'back');
+        } else if (previousPage === 'wa-categories') {
+            navigateWithFlip(function() { renderMessageCategories(); }, 'back');
+        } else {
+            navigateWithFlip(function() { renderWhatsAppPage(); }, 'back');
+        }
+    } else if (previousPage === 'contacts') {
+        navigateWithFlip(function() { renderContactManager(); }, 'back');
+    } else {
+        navigateWithFlip(function() { renderMainPage(); }, 'back');
+    }
+}
+ 
+function navigateWithFlip(renderFn, direction) {
+    if (isFlipping) return;
+    isFlipping = true;
+    var page = document.getElementById('pageContent');
+    if (!page) {
+        renderFn();
+        isFlipping = false;
+        return;
+    }
+    var outClass = (direction === 'forward') ? 'flip-out' : 'flip-back-out';
+    var inClass = (direction === 'forward') ? 'flip-in' : 'flip-back-in';
+    page.classList.add(outClass);
+    setTimeout(function() {
+        page.classList.remove(outClass);
+        renderFn();
+        page.classList.add(inClass);
+        setTimeout(function() {
+            page.classList.add(inClass + '-active');
+            setTimeout(function() {
+                page.classList.remove(inClass);
+                page.classList.remove(inClass + '-active');
+                isFlipping = false;
+            }, CONFIG.animationDuration);
+        }, 50);
+    }, CONFIG.animationDuration);
+}
+ 
+// ============================================
+// WHATSAPP FUNCTIONS
+// ============================================
+function openWhatsApp() {
+    pageHistory.push(currentPage);
+    currentPage = 'whatsapp';
+    navigateWithFlip(function() { renderWhatsAppPage(); }, 'forward');
+}
+ 
+function renderWhatsAppPage() {
+    var contacts = getContacts();
+    var html = '';
+    html += '<div class="chapter-title">💌 Message Family</div>';
+    if (contacts.length === 0) {
+        html += '<p style="text-align:center;padding:20px;color:var(--text-light);">No contacts saved yet. Please add contacts first.</p>';
+        html += '<button class="need-btn" onclick="openContactManager()"><span class="icon">👥</span><span class="label">Add Contacts</span><span class="arrow">&gt;</span></button>';
+    } else {
+        html += '<p style="text-align:center;margin-bottom:16px;color:var(--text-light);">Select a contact:</p>';
+        for (var i = 0; i < contacts.length; i++) {
+            html += '<button class="need-btn" onclick="selectContactForMessage(' + i + ')"><span class="icon">👤</span><span class="label">' + contacts[i].name + '</span><span class="arrow">&gt;</span></button>';
+        }
+    }
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+    showBackButton();
+    updatePageNumber(pageHistory.length + 1);
+}
+ 
+function selectContactForMessage(index) {
+    selectedContact = getContacts()[index];
+    pageHistory.push(currentPage);
+    currentPage = 'wa-categories';
+    navigateWithFlip(function() { renderMessageCategories(); }, 'forward');
+}
+ 
+function renderMessageCategories() {
+    var msgs = WA_MESSAGES[currentLang] || WA_MESSAGES['en'];
+    var html = '';
+    html += '<div class="chapter-title">💌 ' + selectedContact.name + '</div>';
+    html += '<div class="selected-contact-banner">Sending to: ' + selectedContact.name + '</div>';
+    for (var i = 0; i < msgs.categories.length; i++) {
+        var cat = msgs.categories[i];
+        html += '<button class="need-btn" onclick="renderMessages(\'' + cat.id + '\')"><span class="icon">' + cat.icon + '</span><span class="label">' + cat.label + '</span><span class="arrow">&gt;</span></button>';
+    }
+    html += '<button class="wa-call-btn" onclick="callWhatsApp(\'' + selectedContact.phone + '\')">📞 Call ' + selectedContact.name + ' (Direct)</button>';
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+    showBackButton();
+    updatePageNumber(pageHistory.length + 1);
+}
+ 
+function renderMessages(catId) {
+    var msgs = WA_MESSAGES[currentLang] || WA_MESSAGES['en'];
+    var cat = null;
+    for (var i = 0; i < msgs.categories.length; i++) {
+        if (msgs.categories[i].id === catId) {
+            cat = msgs.categories[i];
+            break;
+        }
+    }
+    if (!cat) return;
+    pageHistory.push(currentPage);
+    currentPage = 'wa-messages';
+    var html = '';
+    html += '<div class="chapter-title">' + cat.icon + ' ' + cat.label + '</div>';
+    for (var j = 0; j < cat.messages.length; j++) {
+        var msg = cat.messages[j];
+        var safeMsg = msg.replace(/'/g, "\\'");
+        html += '<button class="wa-message-btn" onclick="sendWhatsApp(\'' + selectedContact.phone + '\', \'' + safeMsg + '\')">' + msg + '</button>';
+    }
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+    showBackButton();
+    updatePageNumber(pageHistory.length + 1);
+}
+ 
+function sendWhatsApp(phone, message) {
+    var url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(message);
+    window.open(url, '_blank');
+    showToast('Opening WhatsApp...');
+    logActivity('WhatsApp', 'Sent: ' + message);
+}
+ 
+function callWhatsApp(phone) {
+    window.location.href = 'tel:+' + phone;
+    showToast('Calling...');
+    logActivity('Call', 'Direct call to ' + phone);
+}
+ 
+// ============================================
+// CONTACT MANAGEMENT
+// ============================================
+function getContacts() {
+    var stored = localStorage.getItem('careconnect_contacts');
+    if (stored) return JSON.parse(stored);
+    return [];
+}
+ 
+function saveContacts(contacts) {
+    localStorage.setItem('careconnect_contacts', JSON.stringify(contacts));
+}
+ 
+function openContactManager() {
+    pageHistory.push(currentPage);
+    currentPage = 'contacts';
+    navigateWithFlip(function() { renderContactManager(); }, 'forward');
+}
+ 
+function renderContactManager() {
+    var contacts = getContacts();
+    var html = '';
+    html += '<div class="chapter-title">👥 Manage Contacts</div>';
+    if (contacts.length === 0) {
+        html += '<p style="text-align:center;padding:20px;color:var(--text-light);font-style:italic;">No contacts yet — tap + to add your first contact</p>';
+    } else {
+        for (var i = 0; i < contacts.length; i++) {
+            html += '<div class="contact-item">';
+            html += '<div><strong>' + contacts[i].name + '</strong><br><span style="color:var(--text-light);font-size:0.9rem;">' + contacts[i].phone + '</span></div>';
+            html += '<div class="contact-actions">';
+            html += '<button onclick="showEditContactForm(' + i + ')" style="background:var(--gold-accent);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">✏️</button>';
+            html += '<button onclick="deleteContact(' + i + ')" style="background:#c62828;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">🗑️</button>';
+            html += '</div></div>';
+        }
+    }
+    html += '<button class="need-btn" onclick="showAddContactForm()" style="margin-top:16px;"><span class="icon">➕</span><span class="label">Add New Contact</span><span class="arrow">&gt;</span></button>';
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+    showBackButton();
+    updatePageNumber(pageHistory.length + 1);
+}
+ 
+function showAddContactForm() {
+    var html = '';
+    html += '<div class="chapter-title">➕ Add Contact</div>';
+    html += '<div class="contact-form">';
+    html += '<input type="text" id="contactName" placeholder="Name (e.g. Son, Daughter, Nurse)">';
+    html += '<input type="tel" id="contactPhone" placeholder="Phone with country code (e.g. 919876543210)">';
+    html += '<button onclick="saveNewContact()">Save Contact</button>';
+    html += '<button onclick="renderContactManager()" style="background:var(--text-light);">Cancel</button>';
+    html += '</div>';
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+}
+ 
+function showEditContactForm(index) {
+    var contacts = getContacts();
+    var c = contacts[index];
+    var html = '';
+    html += '<div class="chapter-title">✏️ Edit Contact</div>';
+    html += '<div class="contact-form">';
+    html += '<input type="text" id="contactName" value="' + c.name + '" placeholder="Name">';
+    html += '<input type="tel" id="contactPhone" value="' + c.phone + '" placeholder="Phone">';
+    html += '<button onclick="updateContact(' + index + ')">Update Contact</button>';
+    html += '<button onclick="renderContactManager()" style="background:var(--text-light);">Cancel</button>';
+    html += '</div>';
+    var pageContent = document.getElementById('pageContent');
+    if (pageContent) pageContent.innerHTML = html;
+}
+ 
+function saveNewContact() {
+    var name = document.getElementById('contactName').value.trim();
+    var phone = document.getElementById('contactPhone').value.trim();
+    if (!name || !phone) {
+        showToast('Please fill in both name and phone');
+        return;
+    }
+    var contacts = getContacts();
+    contacts.push({ name: name, phone: phone });
+    saveContacts(contacts);
+    showToast('Contact saved!');
+    renderContactManager();
+}
+ 
+function updateContact(index) {
+    var name = document.getElementById('contactName').value.trim();
+    var phone = document.getElementById('contactPhone').value.trim();
+    if (!name || !phone) {
+        showToast('Please fill in both name and phone');
+        return;
+    }
+    var contacts = getContacts();
+    contacts[index] = { name: name, phone: phone };
+    saveContacts(contacts);
+    showToast('Contact updated!');
+    renderContactManager();
+}
+ 
+function deleteContact(index) {
+    showConfirmation('Delete Contact', 'Are you sure you want to delete this contact?', function() {
+        var contacts = getContacts();
+        contacts.splice(index, 1);
+        saveContacts(contacts);
+        showToast('Contact deleted');
+        renderContactManager();
+    }, true);
+}
+// ============================================
+// SOS EMERGENCY ALARM
+// ============================================
+function activateSOS() {
+    showConfirmation('SOS Emergency', 'This will sound a LOUD alarm and send emergency messages to all your saved contacts. Are you sure?', function() {
+        startSOS();
+    }, true);
+}
+
+function startSOS() {
+    sosActive = true;
+    logActivity('SOS', 'Emergency alarm activated');
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        oscillator = audioContext.createOscillator();
+        var gainNode = audioContext.createGain();
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.value = 800;
+        gainNode.gain.value = 1.0;
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.start();
+        var highFreq = true;
+        sosInterval = setInterval(function() {
+            if (highFreq) {
+                oscillator.frequency.value = 600;
+            } else {
+                oscillator.frequency.value = 800;
+            }
+            highFreq = !highFreq;
+        }, 500);
+    } catch (e) {
+        console.log('Audio not supported');
+    }
+    showSOSOverlay();
+    sendEmergencyToAll();
+}
+
+function stopSOS() {
+    sosActive = false;
+    if (oscillator) {
+        try { oscillator.stop(); } catch (e) {}
+        oscillator = null;
+    }
+    if (audioContext) {
+        try { audioContext.close(); } catch (e) {}
+        audioContext = null;
+    }
+    if (sosInterval) {
+        clearInterval(sosInterval);
+        sosInterval = null;
+    }
+    hideSOSOverlay();
+    showToast('SOS alarm stopped');
+    logActivity('SOS', 'Emergency alarm stopped');
+}
+
+function sendEmergencyToAll() {
+    var contacts = getContacts();
+    var message = 'EMERGENCY! I need help immediately. This is an SOS alert from CareConnect. Please come or call back urgently!';
+    if (contacts.length === 0) {
+        showToast('No emergency contacts saved!');
+        return;
+    }
+    var phones = [];
+    for (var i = 0; i < contacts.length; i++) {
+        phones.push('+' + contacts[i].phone);
+    }
+    var smsUrl = 'sms:' + phones.join(',') + '?body=' + encodeURIComponent(message);
+    window.location.href = smsUrl;
+    showToast('Emergency SMS opened!');
+}
+
+function showSOSOverlay() {
+    var overlay = document.getElementById('sosOverlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+    }
+}
+
+function hideSOSOverlay() {
+    var overlay = document.getElementById('sosOverlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+    }
+}
+
+// ============================================
+// CAREGIVER DASHBOARD
+// ============================================
+function openDashboard() {
+    var panel = document.getElementById('dashboardPanel');
+    if (panel) {
+        panel.classList.add('open');
+        renderDashboard();
+    }
+}
+
+function closeDashboard() {
+    var panel = document.getElementById('dashboardPanel');
+    if (panel) {
+        panel.classList.remove('open');
+    }
+}
+
+function renderDashboard() {
+    var logs = JSON.parse(localStorage.getItem('careconnect_logs') || '[]');
+    var contentEl = document.getElementById('dashboardContent');
+    if (!contentEl) return;
+    var html = '';
+    html += '<div class="dashboard-summary">';
+    var categories = {};
+    for (var i = 0; i < logs.length; i++) {
+        var cat = logs[i].category;
+        if (!categories[cat]) categories[cat] = 0;
+        categories[cat]++;
+    }
+    var catKeys = Object.keys(categories);
+    for (var j = 0; j < catKeys.length; j++) {
+        html += '<div class="summary-card">';
+        html += '<strong>' + catKeys[j] + '</strong>';
+        html += '<span>' + categories[catKeys[j]] + '</span>';
+        html += '</div>';
+    }
+    html += '</div>';
+    html += '<div class="log-entries">';
+    if (logs.length === 0) {
+        html += '<p style="text-align:center;color:var(--text-light);padding:20px;">No activity logged yet.</p>';
+    } else {
+        var start = Math.max(0, logs.length - 20);
+        for (var k = logs.length - 1; k >= start; k--) {
+            var entry = logs[k];
+            var isEmergency = entry.category === 'SOS';
+            html += '<div class="log-entry' + (isEmergency ? ' emergency' : '') + '">';
+            html += '<span class="log-time">' + entry.time + ' - ' + entry.date + '</span>';
+            html += '<span class="log-text"><strong>' + entry.category + ':</strong> ' + entry.text + '</span>';
+            html += '</div>';
+        }
+    }
+    html += '</div>';
+    html += '<div class="dashboard-actions">';
+    html += '<button class="btn-clear-log" onclick="clearLog()">Clear All Logs</button>';
+    html += '</div>';
+    contentEl.innerHTML = html;
+}
+
+function logActivity(category, text) {
+    var logs = JSON.parse(localStorage.getItem('careconnect_logs') || '[]');
+    var now = new Date();
+    logs.push({
+        category: category,
+        text: text,
+        time: now.toLocaleTimeString(),
+        date: now.toLocaleDateString()
+    });
+    localStorage.setItem('careconnect_logs', JSON.stringify(logs));
+}
+
+function clearLog() {
+    showConfirmation('Clear Logs', 'Are you sure you want to clear all activity logs?', function() {
+        localStorage.removeItem('careconnect_logs');
+        renderDashboard();
+        showToast('Logs cleared');
+    }, true);
+}
+
+// ============================================
+// LANGUAGE SWITCHING (FIXED)
+// ============================================
+function toggleLanguage() {
+    var existingOverlay = document.getElementById('langOverlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+        return;
+    }
+    var overlay = document.createElement('div');
+    overlay.id = 'langOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:400;overflow-y:auto;padding:20px;display:flex;align-items:center;justify-content:center;';
+    var html = '<div style="background:var(--bg-color);border-radius:16px;padding:24px;max-width:380px;width:90%;border:2px solid var(--gold-accent);max-height:80vh;overflow-y:auto;">';
+    html += '<h2 style="font-family:var(--font-heading);font-size:1.6rem;text-align:center;margin-bottom:20px;color:var(--text-color);">Switch Language</h2>';
+    html += '<div style="display:flex;flex-direction:column;gap:10px;">';
+    var langKeys = Object.keys(LANGUAGES);
+    for (var i = 0; i < langKeys.length; i++) {
+        var code = langKeys[i];
+        var info = LANGUAGES[code];
+        var isActive = (code === currentLang);
+        var bgStyle = isActive ? 'background:var(--accent-color);color:#fff;border-color:var(--accent-color);' : 'background:var(--bg-paper);color:var(--text-color);border-color:var(--border-color);';
+        html += '<button onclick="switchLanguage(\'' + code + '\')" style="padding:14px 18px;border-radius:10px;border:2px solid;font-family:var(--font-body);font-size:1.1rem;cursor:pointer;text-align:left;' + bgStyle + '">';
+        html += '<strong>' + info.nativeName + '</strong> - ' + info.name;
+        if (isActive) html += ' ✓';
+        html += '</button>';
+    }
+    html += '</div>';
+    html += '<button onclick="closeLangOverlay()" style="display:block;margin:20px auto 0;padding:12px 30px;background:var(--accent-color);color:#fff;border:none;border-radius:10px;font-family:var(--font-body);font-size:1rem;cursor:pointer;">Close</button>';
+    html += '</div>';
+    overlay.innerHTML = html;
+    document.body.appendChild(overlay);
+}
+
+function switchLanguage(code) {
+    currentLang = code;
+    userProfile.language = code;
+    saveProfile();
+    closeLangOverlay();
+    if (currentPage === 'main') {
+        renderMainPage();
+    } else {
+        var needs = NEEDS[currentLang] || NEEDS['en'];
+        var cat = null;
+        for (var i = 0; i < needs.main.length; i++) {
+            if (needs.main[i].id === currentPage) {
+                cat = needs.main[i];
+                break;
+            }
+        }
+        if (cat) {
+            renderSubPage(cat);
+        } else {
+            renderMainPage();
+        }
+    }
+}
+
+function closeLangOverlay() {
+    var overlay = document.getElementById('langOverlay');
+    if (overlay) overlay.remove();
+}
+
+// ============================================
+// CONFIRMATION OVERLAY
+// ============================================
+function showConfirmation(title, message, callback, isDanger) {
+    pendingAction = callback;
+    var overlay = document.getElementById('confirmOverlay');
+    var titleEl = document.getElementById('confirmTitle');
+    var msgEl = document.getElementById('confirmMessage');
+    var confirmBtn = overlay.querySelector('.btn-confirm');
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+    if (confirmBtn) {
+        if (isDanger) {
+            confirmBtn.classList.add('danger');
+        } else {
+            confirmBtn.classList.remove('danger');
+        }
+    }
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+}
+
+function closeOverlay() {
+    var overlay = document.getElementById('confirmOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        overlay.classList.add('hidden');
+    }
+    pendingAction = null;
+}
+
+function confirmAction() {
+    if (pendingAction) {
+        pendingAction();
+    }
+    closeOverlay();
+}
+
+// ============================================
+// TOAST NOTIFICATIONS
+// ============================================
+function showToast(message) {
+    var toast = document.getElementById('sentMessage');
+    if (toast) {
+        toast.textContent = '✓ ' + message;
+        toast.style.display = 'block';
+        toast.style.animation = 'none';
+        toast.offsetHeight;
+        toast.style.animation = 'fadeInOut 2.5s ease-in-out';
+        setTimeout(function() {
+            toast.style.display = 'none';
+        }, CONFIG.toastDuration);
+    }
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function showBackButton() {
+    var btn = document.querySelector('.back-btn');
+    if (btn) btn.classList.add('visible');
+}
+
+function hideBackButton() {
+    var btn = document.querySelector('.back-btn');
+    if (btn) btn.classList.remove('visible');
+}
+
+function showDashboardButton() {
+    var btn = document.querySelector('.dashboard-toggle-btn');
+    if (btn) btn.style.display = 'block';
+}
+
+function hideDashboardButton() {
+    var btn = document.querySelector('.dashboard-toggle-btn');
+    if (btn) btn.style.display = 'none';
+}
+
+function updatePageNumber(num) {
+    var el = document.getElementById('pageNumber');
+    if (el) el.textContent = 'Page ' + num;
+}
+
+// ============================================
+// EVENT GUARDS
+// ============================================
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+// ============================================
+// INITIALIZATION
+// ============================================
+function initApp() {
+    currentLang = userProfile.language || 'en';
+    renderMainPage();
+    showDashboardButton();
+    initTouchListeners();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (loadProfile()) {
+        initApp();
+    } else {
+        var setupScreen = document.querySelector('.setup-screen');
+        if (setupScreen) setupScreen.classList.add('active');
+    }
+});
+
+if (document.readyState !== 'loading') {
+    if (loadProfile()) {
+        initApp();
+    } else {
+        var setupScreen = document.querySelector('.setup-screen');
+        if (setupScreen) setupScreen.classList.add('active');
+    }
+}
+
+</script>
+</body>
+</html>
