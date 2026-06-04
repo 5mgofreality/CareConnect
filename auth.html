@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CareConnect - Authentication">
+    <title>CareConnect - Sign In / Sign Up</title>
+    <style>
+        :root {
+            --bg-color: #f4e4c1;
+            --bg-paper: #faf3e0;
+            --accent-color: #6d4c41;
+            --text-color: #4e342e;
+            --text-light: #8d6e63;
+            --gold-accent: #c9a84c;
+            --border-color: #d7ccc8;
+            --shadow-color: rgba(0,0,0,0.1);
+            --font-heading: 'Caveat', cursive;
+            --font-body: 'Patrick Hand', cursive;
+            --transition-speed: 0.4s;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-paper) 100%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: var(--bg-paper);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 30px;
+            margin: 20px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-header h1 {
+            font-family: var(--font-heading);
+            font-size: 2.4rem;
+            color: var(--accent-color);
+            margin: 0;
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-light);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--gold-accent);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-color);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-color);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-light);
+        }
+
+        .user-type-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .user-type-option {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-color);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            font-family: var(--font-body);
+        }
+
+        .user-type-option:active,
+        .user-type-option.selected {
+            border-color: var(--accent-color);
+            background: var(--bg-paper);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .user-type-option .icon {
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .user-type-option .label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-group.hidden {
+            display: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .auth-divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .auth-divider::before {
+            left: 0;
+        }
+
+        .auth-divider::after {
+            right: 0;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            display: none;
+            border-left: 4px solid #c62828;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            display: none;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .toggle-form button {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-family: var(--font-body);
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .invite-code-section {
+            background: var(--bg-color);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            border: 2px dashed var(--border-color);
+        }
+
+        .invite-code-section p {
+            margin: 0 0 8px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 30px 20px;
+            }
+
+            .auth-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>CareConnect</h1>
+            <p>Care with Connection</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="tab-btn active" data-tab="signin">Sign In</button>
+            <button class="tab-btn" data-tab="signup">Sign Up</button>
+        </div>
+
+        <!-- SIGN IN TAB -->
+        <div id="signin-form" class="auth-form">
+            <div class="error-message" id="signin-error"></div>
+            <div class="success-message" id="signin-success"></div>
+
+            <form id="form-signin">
+                <div class="form-group">
+                    <label for="signin-email">Email Address</label>
+                    <input type="email" id="signin-email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signin-password">Password</label>
+                    <input type="password" id="signin-password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Sign In</button>
+            </form>
+
+            <div class="loading" id="signin-loading">
+                <div class="spinner"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-light);">
+                <a href="#" style="color: var(--accent-color); text-decoration: none;">Forgot Password?</a>
+            </div>
+        </div>
+
+        <!-- SIGN UP TAB -->
+        <div id="signup-form" class="auth-form" style="display: none;">
+            <div class="error-message" id="signup-error"></div>
+            <div class="success-message" id="signup-success"></div>
+
+            <div class="user-type-selector">
+                <div class="user-type-option selected" data-type="primary">
+                    <div class="icon">👴</div>
+                    <div class="label">I Need Care</div>
+                </div>
+                <div class="user-type-option" data-type="caregiver">
+                    <div class="icon">🤝</div>
+                    <div class="label">I'm a Caregiver</div>
+                </div>
+            </div>
+
+            <form id="form-signup">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-email">Email Address</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-phone">Phone Number</label>
+                    <input type="tel" id="signup-phone" placeholder="Enter your phone number">
+                </div>
+
+                <div class="form-group" id="dob-group">
+                    <label for="signup-dob">Date of Birth</label>
+                    <input type="date" id="signup-dob">
+                </div>
+
+                <div class="form-group" id="language-group">
+                    <label for="signup-language">Preferred Language</label>
+                    <select id="signup-language">
+                        <option value="en">English</option>
+                        <option value="hi">Hindi (English Accent)</option>
+                        <option value="ml">Malayalam (English Accent)</option>
+                        <option value="ta">Tamil (English Accent)</option>
+                        <option value="te">Telugu (English Accent)</option>
+                        <option value="kn">Kannada (English Accent)</option>
+                    </select>
+                </div>
+
+                <div class="form-group hidden" id="invite-code-group">
+                    <div class="invite-code-section">
+                        <p>Enter the invite code provided by your care recipient:</p>
+                        <input type="text" id="signup-invite-code" placeholder="e.g., abc123def456" style="font-size: 0.9rem;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a strong password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-password-confirm">Confirm Password</label>
+                    <input type="password" id="signup-password-confirm" placeholder="Confirm your password" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Create Account</button>
+            </form>
+
+            <div class="loading" id="signup-loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { signInUser, registerPrimaryUser, registerCaregiver, caregiverJoinWithCode } from './firebase-config.js';
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.auth-form').forEach(f => f.style.display = 'none');
+                
+                btn.classList.add('active');
+                const tabName = btn.dataset.tab;
+                document.getElementById(`${tabName}-form`).style.display = 'block';
+            });
+        });
+
+        // User type selector for signup
+        document.querySelectorAll('.user-type-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.user-type-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+
+                const userType = option.dataset.type;
+                const dobGroup = document.getElementById('dob-group');
+                const langGroup = document.getElementById('language-group');
+                const inviteGroup = document.getElementById('invite-code-group');
+
+                if (userType === 'primary') {
+                    dobGroup.classList.remove('hidden');
+                    langGroup.classList.remove('hidden');
+                    inviteGroup.classList.add('hidden');
+                } else {
+                    dobGroup.classList.add('hidden');
+                    langGroup.classList.add('hidden');
+                    inviteGroup.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Sign In Form
+        document.getElementById('form-signin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+
+            showLoading('signin', true);
+            const result = await signInUser(email, password);
+            showLoading('signin', false);
+
+            if (result.success) {
+                showSuccess('signin', 'Sign in successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+            } else {
+                showError('signin', result.error || 'Sign in failed. Please try again.');
+            }
+        });
+
+        // Sign Up Form
+        document.getElementById('form-signup').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const phone = document.getElementById('signup-phone').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-password-confirm').value;
+
+            if (password !== confirmPassword) {
+                showError('signup', 'Passwords do not match.');
+                return;
+            }
+
+            const userType = document.querySelector('.user-type-option.selected').dataset.type;
+
+            showLoading('signup', true);
+
+            let result;
+            if (userType === 'primary') {
+                const dob = document.getElementById('signup-dob').value;
+                const language = document.getElementById('signup-language').value;
+                result = await registerPrimaryUser(email, password, { name, phone, dateOfBirth: dob, language });
+            } else {
+                const inviteCode = document.getElementById('signup-invite-code').value.trim();
+                result = await registerCaregiver(email, password, { name, phone });
+                
+                if (result.success && inviteCode) {
+                    const joinResult = await caregiverJoinWithCode(result.uid, inviteCode);
+                    if (!joinResult.success) {
+                        showError('signup', 'Account created but invite code is invalid: ' + joinResult.error);
+                        showLoading('signup', false);
+                        return;
+                    }
+                }
+            }
+
+            showLoading('signup', false);
+
+            if (result.success) {
+                showSuccess('signup', 'Account created successfully! Signing you in...');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+            } else {
+                showError('signup', result.error || 'Sign up failed. Please try again.');
+            }
+        });
+
+        function showError(type, message) {
+            const errorDiv = document.getElementById(`${type}-error`);
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function showSuccess(type, message) {
+            const successDiv = document.getElementById(`${type}-success`);
+            successDiv.textContent = message;
+            successDiv.classList.add('show');
+        }
+
+        function showLoading(type, show) {
+            document.getElementById(`${type}-loading`).style.display = show ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
